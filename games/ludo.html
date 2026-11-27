@@ -7,7 +7,11 @@
 <title>FREE PLAY | Ludo Arena</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:18px 12px 30px;background:radial-gradient(ellipse at top,#202d53,#080e1d 60%,#040711);color:#fff;font-family:Arial,sans-serif;text-align:center}
+body{
+ margin:0;padding:18px 12px 30px;
+ background:radial-gradient(ellipse at top,#202d53,#080e1d 60%,#040711);
+ color:white;font-family:Arial,sans-serif;text-align:center
+}
 header{margin:5px 0 20px}
 .brand{font-size:28px;font-weight:900;letter-spacing:4px;color:#39eaff;text-shadow:0 0 18px #00dfff}
 .sub{font-size:10px;letter-spacing:4px;color:#9caccb;margin-top:5px}
@@ -15,7 +19,10 @@ main{max-width:650px;margin:auto}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
 h1{font-size:21px;margin:0;text-align:left}
 .hint{font-size:12px;color:#9eacc9;text-align:left;margin-top:5px}
-button,select{border:1px solid #365174;background:#14213b;color:white;border-radius:12px;padding:12px;font-weight:bold}
+button,select{
+ border:1px solid #365174;background:#14213b;color:white;
+ border-radius:12px;padding:12px;font-weight:bold
+}
 button{cursor:pointer}
 button:disabled{opacity:.45;cursor:not-allowed}
 select{max-width:160px}
@@ -23,18 +30,31 @@ select{max-width:160px}
 .player{padding:10px 3px;background:#111c32;border:1px solid #2c3d5d;border-radius:12px;color:#aebbd4;font-size:11px}
 .player b{display:block;margin-bottom:4px;font-size:13px}
 .player.active{border-color:#39eaff;box-shadow:0 0 13px #00dfff55;color:white}
-.boardframe{padding:8px;border-radius:22px;background:linear-gradient(135deg,#1ceaff,#7351e9,#1ceaff);box-shadow:0 0 30px #00dfff35,0 15px 35px #0008}
+.boardframe{
+ padding:8px;border-radius:22px;
+ background:linear-gradient(135deg,#1ceaff,#7351e9,#1ceaff);
+ box-shadow:0 0 30px #00dfff35,0 15px 35px #0008
+}
 #board{display:block;width:100%;height:auto;border-radius:13px;background:#f7f7f2}
-.controls{margin-top:15px;padding:15px;border:1px solid #2b4264;border-radius:17px;background:linear-gradient(145deg,#172641,#0c1528)}
+.controls{
+ margin-top:15px;padding:15px;border:1px solid #2b4264;
+ border-radius:17px;background:linear-gradient(145deg,#172641,#0c1528)
+}
 .dice-row{display:flex;align-items:center;justify-content:center;gap:15px}
-#dice{width:60px;height:60px;border-radius:15px;background:#0a1830;border:2px solid #39eaff;display:grid;place-items:center;font-size:35px;box-shadow:0 0 15px #00dfff55}
+#dice{
+ width:60px;height:60px;border-radius:15px;background:#0a1830;
+ border:2px solid #39eaff;display:grid;place-items:center;
+ font-size:35px;box-shadow:0 0 15px #00dfff55
+}
 #dice.spin{animation:spin .45s ease}
 @keyframes spin{to{transform:rotate(360deg) scale(1.08)}}
-.primary{padding:16px 25px;background:linear-gradient(110deg,#087fce,#7444df);border-color:#48dfff;box-shadow:0 0 15px #236cba55}
+.primary{
+ padding:16px 25px;background:linear-gradient(110deg,#087fce,#7444df);
+ border-color:#48dfff;box-shadow:0 0 15px #236cba55
+}
 #message{font-size:13px;color:#c8d5eb;margin-top:13px;min-height:18px}
 .actions{margin-top:12px}
 .note{font-size:11px;color:#8093b5;margin-top:12px}
-.piece{transition:transform .12s ease}
 @media(max-width:430px){
  body{padding:12px 7px}
  .boardframe{padding:5px}
@@ -47,6 +67,7 @@ select{max-width:160px}
 </style>
 </head>
 <body>
+
 <header>
  <div class="brand">FREE PLAY</div>
  <div class="sub">THE ARCADE NEVER ENDS</div>
@@ -65,6 +86,7 @@ select{max-width:160px}
  </div>
 
  <div class="players" id="players"></div>
+
  <div class="boardframe">
   <svg id="board" viewBox="0 0 600 600" aria-label="Ludo board"></svg>
  </div>
@@ -89,21 +111,33 @@ const $=id=>document.getElementById(id);
 const names=["Red","Green","Yellow","Blue"];
 const colors=["#ed344d","#12b879","#f1bd24","#2689ee"];
 const pale=["#ffd9df","#d5ffeb","#fff2c5","#d9edff"];
+
+// Correct starting positions in clockwise order.
 const starts=[0,13,26,39];
 
-// Existing board path retained.
-const track=[
-[6,1],[6,2],[6,3],[6,4],[6,5],
-[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],
-[1,8],[2,8],[3,8],[4,8],[5,8],
-[6,9],[6,10],[6,11],[6,12],[6,13],[7,14],
-[8,13],[8,12],[8,11],[8,10],[8,9],
-[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],
-[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
-[8,5],[8,4],[8,3],[8,2],[8,1],[7,0],
-[6,0],[5,0],[4,0],[3,0]
+// Build a continuous 52-square clockwise route.
+// Each quarter contains 13 unique squares.
+const baseTrack=[
+ [6,1],[6,2],[6,3],[6,4],[6,5],
+ [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
+ [0,7],[0,8]
 ];
 
+const track=[];
+
+for(let rotation=0;rotation<4;rotation++){
+ baseTrack.forEach(([r,c])=>{
+  let nr=r,nc=c;
+
+  for(let i=0;i<rotation;i++){
+   [nr,nc]=[nc,14-nr];
+  }
+
+  track.push([nr,nc]);
+ });
+}
+
+// Five home-lane squares for each colour.
 const lanes=[
  [[7,1],[7,2],[7,3],[7,4],[7,5]],
  [[1,7],[2,7],[3,7],[4,7],[5,7]],
@@ -111,6 +145,7 @@ const lanes=[
  [[13,7],[12,7],[11,7],[10,7],[9,7]]
 ];
 
+// Token parking positions.
 const bases=[
  [[10,1],[10,4],[13,1],[13,4]],
  [[1,1],[1,4],[4,1],[4,4]],
@@ -120,26 +155,37 @@ const bases=[
 
 const safe=[0,8,13,21,26,34,39,47];
 
-let state,turn,rolled,dice,finished,valid;
-let mode="local";
+let state;
+let turn=0;
+let rolled=false;
+let dice=0;
+let finished=false;
+let valid=[];
 let busy=false;
+let mode="local";
 let audioContext=null;
+let selectedToken=-1;
+let turnTimer=null;
+let rollTimer=null;
 
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
-function sound(freq=500,duration=.09,type="sine"){
+function sound(freq=500,duration=.09){
  try{
   const Audio=window.AudioContext||window.webkitAudioContext;
   if(!Audio)return;
+
   if(!audioContext)audioContext=new Audio();
   if(audioContext.state==="suspended")audioContext.resume();
 
   const oscillator=audioContext.createOscillator();
   const gain=audioContext.createGain();
-  oscillator.type=type;
+
+  oscillator.type="sine";
   oscillator.frequency.value=freq;
-  gain.gain.setValueAtTime(.08,audioContext.currentTime);
+  gain.gain.setValueAtTime(.07,audioContext.currentTime);
   gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+duration);
+
   oscillator.connect(gain);
   gain.connect(audioContext.destination);
   oscillator.start();
@@ -201,10 +247,11 @@ function buildBoard(){
 
  track.forEach(([r,c],i)=>{
   let fill="#fff";
-  if(i===0)fill=colors[0];
-  if(i===13)fill=colors[1];
-  if(i===26)fill=colors[2];
-  if(i===39)fill=colors[3];
+
+  if(i===starts[0])fill=colors[0];
+  if(i===starts[1])fill=colors[1];
+  if(i===starts[2])fill=colors[2];
+  if(i===starts[3])fill=colors[3];
 
   cell(r,c,fill);
 
@@ -216,8 +263,6 @@ function buildBoard(){
  lanes.forEach((lane,p)=>{
   lane.forEach(([r,c])=>cell(r,c,colors[p]));
  });
-
- const cx=300,cy=300;
 
  svg("polygon",{
   points:"240,240 360,240 300,300",
@@ -236,11 +281,12 @@ function buildBoard(){
   fill:colors[0],stroke:"#fff","stroke-width":2
  });
 
- text(cx,cy+3,"FP",23,"#fff");
+ text(300,303,"FP",23,"#fff");
 
  for(let r=0;r<15;r++){
   for(let c=0;c<15;c++){
    const isCross=(r>=6&&r<=8)||(c>=6&&c<=8);
+
    if(isCross&&!(r>=6&&r<=8&&c>=6&&c<=8)){
     svg("rect",{
      x:c*40,y:r*40,width:40,height:40,
@@ -253,8 +299,15 @@ function buildBoard(){
 
 function position(p,t){
  if(t.pos===-1)return bases[p][t.id];
- if(t.pos<52)return track[(starts[p]+t.pos)%52];
- if(t.pos<57)return lanes[p][t.pos-52];
+
+ if(t.pos<52){
+  return track[(starts[p]+t.pos)%52];
+ }
+
+ if(t.pos<57){
+  return lanes[p][t.pos-52];
+ }
+
  return [7,7];
 }
 
@@ -291,6 +344,7 @@ function drawTokens(){
      cx:0,cy:0,r:20,fill:"transparent",
      style:"cursor:pointer"
     },g);
+
     hit.addEventListener("click",()=>move(t.id));
    }
   });
@@ -328,27 +382,34 @@ function render(){
   $("message").textContent=names[turn]+"'s turn. Roll the dice!";
  }
 
- $("roll").disabled=rolled||finished||busy;
+ $("roll").disabled=rolled||finished||busy||
+  (mode==="computer"&&turn!==0);
 }
 
 function reset(){
+ clearTimeout(turnTimer);
+ clearInterval(rollTimer);
+
  state=names.map(()=>[0,1,2,3].map(id=>({id,pos:-1})));
+
  turn=0;
  rolled=false;
  dice=0;
  finished=false;
  valid=[];
  busy=false;
+ selectedToken=-1;
 
  $("dice").textContent="🎲";
  render();
-
  scheduleCPU();
 }
 
 function scheduleCPU(){
+ clearTimeout(turnTimer);
+
  if(mode==="computer"&&turn!==0&&!finished&&!busy){
-  setTimeout(cpuTurn,700);
+  turnTimer=setTimeout(cpuTurn,750);
  }
 }
 
@@ -357,6 +418,7 @@ function next(){
  rolled=false;
  valid=[];
  dice=0;
+
  $("dice").textContent="🎲";
  render();
  scheduleCPU();
@@ -365,6 +427,7 @@ function next(){
 function legalTokens(){
  return state[turn].filter(t=>{
   if(t.pos===-1)return dice===6;
+  if(t.pos===57)return false;
   return t.pos+dice<=57;
  });
 }
@@ -373,25 +436,26 @@ function roll(){
  if(rolled||finished||busy)return;
  if(mode==="computer"&&turn!==0)return;
 
- const rollButton=$("roll");
- rollButton.disabled=true;
+ $("roll").disabled=true;
 
- const diceFaces=["⚀","⚁","⚂","⚃","⚄","⚅"];
+ const faces=["⚀","⚁","⚂","⚃","⚄","⚅"];
 
  $("dice").classList.remove("spin");
  void $("dice").offsetWidth;
  $("dice").classList.add("spin");
 
  let ticks=0;
- const animation=setInterval(()=>{
-  $("dice").textContent=diceFaces[Math.floor(Math.random()*6)];
+
+ rollTimer=setInterval(()=>{
+  $("dice").textContent=faces[Math.floor(Math.random()*6)];
   ticks++;
-  if(ticks>=7){
-   clearInterval(animation);
+
+  if(ticks>=8){
+   clearInterval(rollTimer);
 
    dice=Math.floor(Math.random()*6)+1;
-   $("dice").textContent=diceFaces[dice-1];
-   sound(350+dice*80,.16,"triangle");
+   $("dice").textContent=faces[dice-1];
+   sound(350+dice*80,.15);
 
    rolled=true;
    valid=legalTokens().map(t=>t.id);
@@ -400,14 +464,14 @@ function roll(){
     rolled=false;
     render();
     $("message").textContent="No valid move. Turn passed!";
-    setTimeout(next,900);
+    turnTimer=setTimeout(next,950);
     return;
    }
 
    render();
 
    if(mode==="computer"&&turn!==0){
-    setTimeout(cpuMove,650);
+    turnTimer=setTimeout(cpuMove,700);
    }
   }
  },65);
@@ -415,9 +479,11 @@ function roll(){
 
 function captureTokens(){
  const moving=state[turn][selectedToken];
+
  if(moving.pos<0||moving.pos>=52)return false;
 
  const square=(starts[turn]+moving.pos)%52;
+
  if(safe.includes(square))return false;
 
  let captured=false;
@@ -427,8 +493,7 @@ function captureTokens(){
 
   arr.forEach(other=>{
    if(
-    other.pos>=0&&
-    other.pos<52&&
+    other.pos>=0&&other.pos<52&&
     (starts[p]+other.pos)%52===square
    ){
     other.pos=-1;
@@ -440,36 +505,42 @@ function captureTokens(){
  return captured;
 }
 
-let selectedToken=-1;
-
 async function move(id){
  if(!rolled||!valid.includes(id)||finished||busy)return;
+
+ clearTimeout(turnTimer);
 
  busy=true;
  selectedToken=id;
 
  const moving=state[turn][id];
+ const wasSix=dice===6;
  const steps=dice;
- const wasSix=steps===6;
 
  rolled=false;
  valid=[];
  render();
 
- // Animate the token one square at a time.
- for(let i=0;i<steps;i++){
-  moving.pos=moving.pos===-1?0:moving.pos+1;
-
-  sound(440,.045,"sine");
+ // Leaving home: move directly to the coloured starting square.
+ if(moving.pos===-1){
+  moving.pos=0;
+  sound(650,.12);
   render();
-  await wait(135);
+  await wait(250);
+ }else{
+  // Move one square at a time, including the home lane.
+  for(let i=0;i<steps;i++){
+   moving.pos++;
+   sound(440,.045);
+   render();
+   await wait(140);
+  }
  }
 
- // Capture only after the token reaches its destination.
  const captured=captureTokens();
 
  if(captured){
-  sound(780,.2,"triangle");
+  sound(780,.2);
  }
 
  busy=false;
@@ -478,13 +549,11 @@ async function move(id){
  if(state[turn].every(t=>t.pos===57)){
   finished=true;
   render();
-  sound(900,.5,"sine");
+  sound(900,.45);
   return;
  }
 
  if(wasSix||captured){
-  rolled=false;
-  valid=[];
   $("dice").textContent="🎲";
   render();
 
@@ -492,7 +561,7 @@ async function move(id){
    ?"Token captured! Play again."
    :"You rolled a six! Play again.";
 
-  sound(650,.15,"triangle");
+  sound(650,.14);
   scheduleCPU();
  }else{
   next();
@@ -509,21 +578,22 @@ function cpuMove(){
 
  const options=valid.map(id=>state[turn][id]);
 
- // Prefer releasing a token from home.
+ // First preference: release a token.
  let choice=options.find(t=>t.pos===-1);
 
- // Otherwise prefer moves that finish a token.
+ // Second preference: finish a token.
  if(!choice){
   choice=options.find(t=>t.pos+dice===57);
  }
 
- // Then choose a move that captures an opponent.
+ // Third preference: capture an opponent.
  if(!choice){
   choice=options.find(t=>{
    const destination=t.pos+dice;
    if(destination>=52)return false;
 
    const square=(starts[turn]+destination)%52;
+
    if(safe.includes(square))return false;
 
    return state.some((arr,p)=>
@@ -535,7 +605,7 @@ function cpuMove(){
   });
  }
 
- // Otherwise choose a random legal token.
+ // Otherwise choose a legal move.
  if(!choice){
   choice=options[Math.floor(Math.random()*options.length)];
  }
@@ -546,8 +616,7 @@ function cpuMove(){
 $("roll").onclick=roll;
 
 $("new").onclick=()=>{
- if(busy)return;
- reset();
+ if(!busy)reset();
 };
 
 $("mode").onchange=e=>{
