@@ -1,15 +1,12 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>FREE PLAY | Free Online Games</title>
-
-    <meta name="description" content="Welcome to FREE PLAY! Discover and enjoy exciting free online games.">
-
+    <meta name="description" content="Play free online games at FREE PLAY. Enjoy arcade, puzzle and racing games anytime!">
     <meta name="theme-color" content="#080D12">
 
     <link rel="stylesheet" href="style.css">
@@ -17,10 +14,8 @@
 
 <body>
 
-    <!-- NAVIGATION BAR -->
-
+    <!-- NAVIGATION -->
     <nav class="navbar">
-
         <div class="logo">FREE PLAY</div>
 
         <div class="nav-links">
@@ -28,14 +23,10 @@
             <a href="#games">Games</a>
             <a href="#about">About</a>
         </div>
-
     </nav>
 
-
-    <!-- HERO SECTION -->
-
+    <!-- HERO -->
     <header class="hero">
-
         <h1>
             WELCOME TO
             <span>FREE PLAY</span>
@@ -49,34 +40,18 @@
         <a href="#games" class="play-btn">
             EXPLORE GAMES
         </a>
-
     </header>
-
-
-    <!-- MAIN CONTENT -->
 
     <main>
 
         <!-- GAMES SECTION -->
-
         <section class="game-section" id="games">
-<input
-    type="text"
-    class="search-box"
-    placeholder="Search your favourite games..."
->
+
             <h2 class="section-title">
                 EXPLORE <span>GAMES</span>
             </h2>
 
-
-            <!-- SEARCH BAR -->
-<div class="categories">
-    <button class="category-btn active" data-category="all">All</button>
-    <button class="category-btn" data-category="puzzle">Puzzle</button>
-    <button class="category-btn" data-category="racing">Racing</button>
-    <button class="category-btn" data-category="arcade">Arcade</button>
-</div>
+            <!-- SEARCH -->
             <input
                 type="text"
                 class="search-box"
@@ -84,9 +59,7 @@
                 aria-label="Search games"
             >
 
-
-            <!-- GAME CATEGORIES -->
-
+            <!-- CATEGORIES -->
             <div class="categories">
 
                 <button class="category-btn active" data-category="all">
@@ -94,174 +67,128 @@
                 </button>
 
                 <button class="category-btn" data-category="puzzle">
-                    Puzzle
-                </button>
-
-                <button class="category-btn" data-category="racing">
-                    Racing
+                    Brain Games
                 </button>
 
                 <button class="category-btn" data-category="arcade">
                     Arcade
                 </button>
 
-            </div>
+                <button class="category-btn" data-category="racing">
+                    Racing
+                </button>
 
+            </div>
 
             <!-- GAME CARDS -->
-
             <div class="game-grid">
 
-
-                <!-- GAME 1 -->
-
+                <!-- SNAKE -->
                 <div class="game-card" data-category="arcade">
-
                     <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Puzzle+Game"
-                        alt="Puzzle Game"
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=Snake+Game"
+                        alt="Snake Game"
                     >
 
                     <div class="game-info">
-<h3>Snake Game</h3>
+                        <h3>Snake Game</h3>
                         <p>Collect food and beat your high score!</p>
-<a href="games/snake.html" class="game-btn">
-    Play Now
-</a>
-                        
 
-                    </div>
-
-                </div>
-
-
-                <!-- GAME 2 -->
-
-                <div class="game-card" data-category="racing">
-
-                    <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Racing+Game"
-                        alt="Racing Game"
-                    >
-
-                    <div class="game-info">
-
-                        <h3>Racing Challenge</h3>
-
-                        <p>Experience exciting racing adventures.</p>
-
-                        <a href="#" class="game-btn">
+                        <a href="games/snake.html" class="game-btn">
                             Play Now
                         </a>
-
                     </div>
-
                 </div>
 
-
-                <!-- GAME 3 -->
-
-                <div class="game-card" data-category="arcade">
-
-                    <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Arcade+Game"
-                        alt="Arcade Game"
-                    >
-
-                    <div class="game-info">
-
-                        <h3>Arcade World</h3>
-
-                        <p>Enjoy classic arcade-style entertainment.</p>
-
-                        <a href="#" class="game-btn">
-                            Play Now
-                        </a>
-
-                    </div>
-
-                </div>
-
-
-                <!-- GAME 4 -->
-
+                <!-- TIC TAC TOE -->
                 <div class="game-card" data-category="puzzle">
-
                     <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Brain+Games"
-                        alt="Brain Games"
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=Tic+Tac+Toe"
+                        alt="Tic Tac Toe"
                     >
 
                     <div class="game-info">
+                        <h3>Tic Tac Toe</h3>
+                        <p>Challenge a friend or play against the computer.</p>
 
-                        <h3>Brain Master</h3>
-
-                        <p>Challenge your mind and solve problems.</p>
-
-                        <a href="#" class="game-btn">
+                        <a href="games/tictactoe.html" class="game-btn">
                             Play Now
                         </a>
-
                     </div>
-
                 </div>
 
+                <!-- 2048 -->
+                <div class="game-card" data-category="puzzle">
+                    <img
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=2048+Puzzle"
+                        alt="2048 Puzzle"
+                    >
 
-                <!-- GAME 5 -->
+                    <div class="game-info">
+                        <h3>2048 Puzzle</h3>
+                        <p>Combine number tiles and reach 2048!</p>
 
+                        <a href="games/2048.html" class="game-btn">
+                            Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- BRICK BREAKER -->
                 <div class="game-card" data-category="arcade">
-
                     <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Space+Adventure"
-                        alt="Space Adventure"
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=Brick+Breaker"
+                        alt="Brick Breaker"
                     >
 
                     <div class="game-info">
+                        <h3>Brick Breaker</h3>
+                        <p>Break the bricks and beat each level.</p>
 
-                        <h3>Space Adventure</h3>
-
-                        <p>Explore an exciting space-themed world.</p>
-
-                        <a href="#" class="game-btn">
+                        <a href="games/brickbreaker.html" class="game-btn">
                             Play Now
                         </a>
-
                     </div>
-
                 </div>
 
+                <!-- MEMORY MATCH -->
+                <div class="game-card" data-category="puzzle">
+                    <img
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=Memory+Match"
+                        alt="Memory Match"
+                    >
 
-                <!-- GAME 6 -->
+                    <div class="game-info">
+                        <h3>Memory Match</h3>
+                        <p>Test your memory by matching the cards.</p>
 
+                        <a href="games/memory.html" class="game-btn">
+                            Play Now
+                        </a>
+                    </div>
+                </div>
+
+                <!-- RACING -->
                 <div class="game-card" data-category="racing">
-
                     <img
-                        src="https://placehold.co/400x200/087E8B/ffffff?text=Speed+Racer"
-                        alt="Speed Racer"
+                        src="https://placehold.co/400x200/087E8B/ffffff?text=Racing+Challenge"
+                        alt="Racing Challenge"
                     >
 
                     <div class="game-info">
-
-                        <h3>Speed Racer</h3>
-
-                        <p>Enjoy another exciting racing challenge.</p>
+                        <h3>Racing Challenge</h3>
+                        <p>Get ready for an exciting racing adventure!</p>
 
                         <a href="#" class="game-btn">
-                            Play Now
+                            Coming Soon
                         </a>
-
                     </div>
-
                 </div>
-
 
             </div>
-
         </section>
 
-
-        <!-- ABOUT SECTION -->
-
+        <!-- ABOUT -->
         <section class="game-section" id="about">
 
             <h2 class="section-title">
@@ -270,35 +197,27 @@
 
             <p>
                 FREE PLAY is your destination for free online
-                entertainment. Discover fun games, explore
-                new challenges and enjoy gaming!
+                entertainment. Discover exciting arcade games,
+                challenge your brain and explore new adventures.
+                Play more. Enjoy more. Absolutely free!
             </p>
 
         </section>
 
     </main>
 
-
     <!-- FOOTER -->
-
     <footer>
-
         <p>
             © 2026 <span>FREE PLAY</span>.
             All Rights Reserved.
         </p>
 
-        <p>
-            Play More. Enjoy More.
-        </p>
-
+        <p>Play More. Enjoy More.</p>
     </footer>
 
-
     <!-- JAVASCRIPT -->
-
     <script src="script.js"></script>
-<script src="script.js"></script>
-</body>
 
+</body>
 </html>
