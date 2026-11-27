@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,7 @@ h1{font-size:21px;margin:0;text-align:left}
 .hint{font-size:12px;color:#9eacc9;text-align:left;margin-top:5px}
 button,select{border:1px solid #365174;background:#14213b;color:white;border-radius:12px;padding:12px;font-weight:bold}
 button{cursor:pointer}
-button:disabled{opacity:.45}
+button:disabled{opacity:.45;cursor:not-allowed}
 select{max-width:160px}
 .players{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .player{padding:10px 3px;background:#111c32;border:1px solid #2c3d5d;border-radius:12px;color:#aebbd4;font-size:11px}
@@ -27,28 +28,56 @@ select{max-width:160px}
 .controls{margin-top:15px;padding:15px;border:1px solid #2b4264;border-radius:17px;background:linear-gradient(145deg,#172641,#0c1528)}
 .dice-row{display:flex;align-items:center;justify-content:center;gap:15px}
 #dice{width:60px;height:60px;border-radius:15px;background:#0a1830;border:2px solid #39eaff;display:grid;place-items:center;font-size:35px;box-shadow:0 0 15px #00dfff55}
-#dice.spin{animation:spin .4s}
-@keyframes spin{to{transform:rotate(360deg)}}
+#dice.spin{animation:spin .45s ease}
+@keyframes spin{to{transform:rotate(360deg) scale(1.08)}}
 .primary{padding:16px 25px;background:linear-gradient(110deg,#087fce,#7444df);border-color:#48dfff;box-shadow:0 0 15px #236cba55}
 #message{font-size:13px;color:#c8d5eb;margin-top:13px;min-height:18px}
 .actions{margin-top:12px}
 .note{font-size:11px;color:#8093b5;margin-top:12px}
-@media(max-width:430px){body{padding:12px 7px}.boardframe{padding:5px}.players{gap:5px}.player{font-size:10px;padding:8px 2px}.player b{font-size:11px}h1{font-size:17px}select{font-size:10px;padding:9px 5px}}
+.piece{transition:transform .12s ease}
+@media(max-width:430px){
+ body{padding:12px 7px}
+ .boardframe{padding:5px}
+ .players{gap:5px}
+ .player{font-size:10px;padding:8px 2px}
+ .player b{font-size:11px}
+ h1{font-size:17px}
+ select{font-size:10px;padding:9px 5px}
+}
 </style>
 </head>
 <body>
-<header><div class="brand">FREE PLAY</div><div class="sub">THE ARCADE NEVER ENDS</div></header>
+<header>
+ <div class="brand">FREE PLAY</div>
+ <div class="sub">THE ARCADE NEVER ENDS</div>
+</header>
+
 <main>
  <div class="top">
-  <div><h1>🎲 Ludo Arena</h1><div class="hint">Roll. Move. Rule the board.</div></div>
-  <select id="mode"><option value="local">Local multiplayer</option><option value="computer">Vs computer</option></select>
+  <div>
+   <h1>🎲 Ludo Arena</h1>
+   <div class="hint">Roll. Move. Rule the board.</div>
+  </div>
+  <select id="mode">
+   <option value="local">Local multiplayer</option>
+   <option value="computer">Vs computer</option>
+  </select>
  </div>
+
  <div class="players" id="players"></div>
- <div class="boardframe"><svg id="board" viewBox="0 0 600 600" aria-label="Ludo board"></svg></div>
+ <div class="boardframe">
+  <svg id="board" viewBox="0 0 600 600" aria-label="Ludo board"></svg>
+ </div>
+
  <div class="controls">
-  <div class="dice-row"><div id="dice">🎲</div><button class="primary" id="roll">ROLL DICE</button></div>
+  <div class="dice-row">
+   <div id="dice">🎲</div>
+   <button class="primary" id="roll">ROLL DICE</button>
+  </div>
   <div id="message">Red's turn. Roll the dice!</div>
-  <div class="actions"><button id="new">↻ NEW GAME</button></div>
+  <div class="actions">
+   <button id="new">↻ NEW GAME</button>
+  </div>
   <div class="note">Roll a six to release a token · Select a glowing token to move</div>
  </div>
 </main>
@@ -56,12 +85,13 @@ select{max-width:160px}
 <script>
 const NS="http://www.w3.org/2000/svg";
 const $=id=>document.getElementById(id);
+
 const names=["Red","Green","Yellow","Blue"];
 const colors=["#ed344d","#12b879","#f1bd24","#2689ee"];
 const pale=["#ffd9df","#d5ffeb","#fff2c5","#d9edff"];
 const starts=[0,13,26,39];
 
-// The 52-space perimeter track, clockwise.
+// Existing board path retained.
 const track=[
 [6,1],[6,2],[6,3],[6,4],[6,5],
 [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],
@@ -74,170 +104,459 @@ const track=[
 [6,0],[5,0],[4,0],[3,0]
 ];
 
-// Home lanes: each colour enters its own five-square lane.
 const lanes=[
-[[7,1],[7,2],[7,3],[7,4],[7,5]],
-[[1,7],[2,7],[3,7],[4,7],[5,7]],
-[[7,13],[7,12],[7,11],[7,10],[7,9]],
-[[13,7],[12,7],[11,7],[10,7],[9,7]]
+ [[7,1],[7,2],[7,3],[7,4],[7,5]],
+ [[1,7],[2,7],[3,7],[4,7],[5,7]],
+ [[7,13],[7,12],[7,11],[7,10],[7,9]],
+ [[13,7],[12,7],[11,7],[10,7],[9,7]]
 ];
+
 const bases=[
-[[10,1],[10,4],[13,1],[13,4]],
-[[1,1],[1,4],[4,1],[4,4]],
-[[1,10],[1,13],[4,10],[4,13]],
-[[10,10],[10,13],[13,10],[13,13]]
+ [[10,1],[10,4],[13,1],[13,4]],
+ [[1,1],[1,4],[4,1],[4,4]],
+ [[1,10],[1,13],[4,10],[4,13]],
+ [[10,10],[10,13],[13,10],[13,13]]
 ];
+
 const safe=[0,8,13,21,26,34,39,47];
-let state,turn,rolled,dice,finished,valid,mode="local";
+
+let state,turn,rolled,dice,finished,valid;
+let mode="local";
+let busy=false;
+let audioContext=null;
+
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+function sound(freq=500,duration=.09,type="sine"){
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(!Audio)return;
+  if(!audioContext)audioContext=new Audio();
+  if(audioContext.state==="suspended")audioContext.resume();
+
+  const oscillator=audioContext.createOscillator();
+  const gain=audioContext.createGain();
+  oscillator.type=type;
+  oscillator.frequency.value=freq;
+  gain.gain.setValueAtTime(.08,audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+duration);
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime+duration);
+ }catch(e){}
+}
 
 function svg(tag,attrs={},parent=$("board")){
  const el=document.createElementNS(NS,tag);
  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
- parent.appendChild(el);return el;
+ parent.appendChild(el);
+ return el;
 }
+
 function rect(x,y,w,h,fill,stroke="#c6cbd2",sw=1,rx=0){
  return svg("rect",{x,y,width:w,height:h,fill,stroke,"stroke-width":sw,rx});
 }
+
 function text(x,y,value,size,fill,weight="bold"){
- const t=svg("text",{x,y,"font-size":size,fill,"font-weight":weight,"text-anchor":"middle","dominant-baseline":"middle"});
- t.textContent=value;return t;
+ const t=svg("text",{
+  x,y,"font-size":size,fill,"font-weight":weight,
+  "text-anchor":"middle","dominant-baseline":"middle"
+ });
+ t.textContent=value;
+ return t;
 }
+
 function cell(r,c,fill="#fff"){
  rect(c*40,r*40,40,40,fill,"#c7ccd4",1);
 }
+
 function home(x,y,p){
  rect(x*40,y*40,240,240,colors[p],"#fff",3,12);
  rect(x*40+35,y*40+35,170,170,"#fff","#ffffff",2,13);
- const points=[[x*40+75,y*40+75],[x*40+165,y*40+75],[x*40+75,y*40+165],[x*40+165,y*40+165]];
+
+ const points=[
+  [x*40+75,y*40+75],
+  [x*40+165,y*40+75],
+  [x*40+75,y*40+165],
+  [x*40+165,y*40+165]
+ ];
+
  points.forEach(([cx,cy])=>{
   svg("circle",{cx,cy,r:23,fill:pale[p],stroke:colors[p],"stroke-width":3});
   svg("circle",{cx,cy,r:14,fill:colors[p],stroke:"#fff","stroke-width":2});
  });
 }
-function buildBoard(){
- const b=$("board");b.innerHTML="";
- rect(0,0,600,600,"#f7f7f2","#17213a",5,8);
- // Home quadrants.
- home(0,0,1);home(9,0,2);home(0,9,0);home(9,9,3);
 
- // Track squares.
+function buildBoard(){
+ const b=$("board");
+ b.innerHTML="";
+
+ rect(0,0,600,600,"#f7f7f2","#17213a",5,8);
+
+ home(0,0,1);
+ home(9,0,2);
+ home(0,9,0);
+ home(9,9,3);
+
  track.forEach(([r,c],i)=>{
   let fill="#fff";
   if(i===0)fill=colors[0];
   if(i===13)fill=colors[1];
   if(i===26)fill=colors[2];
   if(i===39)fill=colors[3];
+
   cell(r,c,fill);
-  if(safe.includes(i))text(c*40+20,r*40+20,"★",19,"#77839a");
+
+  if(safe.includes(i)){
+   text(c*40+20,r*40+20,"★",19,"#77839a");
+  }
  });
- // Coloured home lanes.
- lanes.forEach((lane,p)=>lane.forEach(([r,c])=>cell(r,c,colors[p])));
- // Central four triangles.
+
+ lanes.forEach((lane,p)=>{
+  lane.forEach(([r,c])=>cell(r,c,colors[p]));
+ });
+
  const cx=300,cy=300;
- svg("polygon",{points:`240,240 360,240 300,300`,fill:colors[1],stroke:"#fff","stroke-width":2});
- svg("polygon",{points:`360,240 360,360 300,300`,fill:colors[2],stroke:"#fff","stroke-width":2});
- svg("polygon",{points:`360,360 240,360 300,300`,fill:colors[3],stroke:"#fff","stroke-width":2});
- svg("polygon",{points:`240,360 240,240 300,300`,fill:colors[0],stroke:"#fff","stroke-width":2});
+
+ svg("polygon",{
+  points:"240,240 360,240 300,300",
+  fill:colors[1],stroke:"#fff","stroke-width":2
+ });
+ svg("polygon",{
+  points:"360,240 360,360 300,300",
+  fill:colors[2],stroke:"#fff","stroke-width":2
+ });
+ svg("polygon",{
+  points:"360,360 240,360 300,300",
+  fill:colors[3],stroke:"#fff","stroke-width":2
+ });
+ svg("polygon",{
+  points:"240,360 240,240 300,300",
+  fill:colors[0],stroke:"#fff","stroke-width":2
+ });
+
  text(cx,cy+3,"FP",23,"#fff");
- // Grid outline for cross tracks.
- for(let r=0;r<15;r++)for(let c=0;c<15;c++){
-  const isCross=(r>=6&&r<=8)||(c>=6&&c<=8);
-  if(isCross&&!(r>=6&&r<=8&&c>=6&&c<=8)){
-   // Track cells are already painted; draw subtle cell borders.
-   svg("rect",{x:c*40,y:r*40,width:40,height:40,fill:"none",stroke:"#c8ccd2","stroke-width":1});
+
+ for(let r=0;r<15;r++){
+  for(let c=0;c<15;c++){
+   const isCross=(r>=6&&r<=8)||(c>=6&&c<=8);
+   if(isCross&&!(r>=6&&r<=8&&c>=6&&c<=8)){
+    svg("rect",{
+     x:c*40,y:r*40,width:40,height:40,
+     fill:"none",stroke:"#c8ccd2","stroke-width":1
+    });
+   }
   }
  }
 }
+
 function position(p,t){
  if(t.pos===-1)return bases[p][t.id];
  if(t.pos<52)return track[(starts[p]+t.pos)%52];
  if(t.pos<57)return lanes[p][t.pos-52];
  return [7,7];
 }
+
 function drawTokens(){
  $("board").querySelectorAll(".piece").forEach(e=>e.remove());
- state.forEach((arr,p)=>arr.forEach(t=>{
-  const [r,c]=position(p,t);
-  const g=svg("g",{class:"piece",transform:`translate(${c*40+20},${r*40+20})`});
-  const can= p===turn&&valid.includes(t.id)&&rolled&&!finished;
-  if(can)svg("circle",{cx:0,cy:0,r:19,fill:"none",stroke:"#00eaff","stroke-width":4},g);
-  svg("circle",{cx:0,cy:2,r:15,fill:"#0005"},g);
-  svg("circle",{cx:0,cy:-1,r:14,fill:colors[p],stroke:"#fff","stroke-width":2},g);
-  svg("ellipse",{cx:-4,cy:-6,rx:5,ry:3,fill:"#ffffff88"},g);
-  if(can){
-   const hit=svg("circle",{cx:0,cy:0,r:20,fill:"transparent",style:"cursor:pointer"},g);
-   hit.addEventListener("click",()=>move(t.id));
-  }
- }));
+
+ state.forEach((arr,p)=>{
+  arr.forEach(t=>{
+   const [r,c]=position(p,t);
+
+   const g=svg("g",{
+    class:"piece",
+    transform:`translate(${c*40+20},${r*40+20})`
+   });
+
+   const can=p===turn&&valid.includes(t.id)&&rolled&&!finished&&!busy;
+
+   if(can){
+    svg("circle",{
+     cx:0,cy:0,r:19,fill:"none",
+     stroke:"#00eaff","stroke-width":4
+    },g);
+   }
+
+   svg("circle",{cx:0,cy:2,r:15,fill:"#0005"},g);
+   svg("circle",{
+    cx:0,cy:-1,r:14,fill:colors[p],
+    stroke:"#fff","stroke-width":2
+   },g);
+   svg("ellipse",{cx:-4,cy:-6,rx:5,ry:3,fill:"#ffffff88"},g);
+
+   if(can){
+    const hit=svg("circle",{
+     cx:0,cy:0,r:20,fill:"transparent",
+     style:"cursor:pointer"
+    },g);
+    hit.addEventListener("click",()=>move(t.id));
+   }
+  });
+ });
 }
+
 function render(){
  drawTokens();
+
  $("players").innerHTML="";
+
  names.forEach((n,p)=>{
   const el=document.createElement("div");
   el.className="player"+(p===turn&&!finished?" active":"");
-  el.innerHTML=`<b style="color:${colors[p]}">${n}</b>${state[p].filter(t=>t.pos===57).length}/4 finished`;
+
+  const b=document.createElement("b");
+  b.style.color=colors[p];
+  b.textContent=n;
+
+  const count=document.createElement("span");
+  count.textContent=state[p].filter(t=>t.pos===57).length+"/4 finished";
+
+  el.appendChild(b);
+  el.appendChild(count);
   $("players").appendChild(el);
  });
- $("message").textContent=finished?names[turn]+" wins! 🏆":rolled?"Select a glowing token.":names[turn]+"'s turn. Roll the dice!";
- $("roll").disabled=rolled||finished;
+
+ if(finished){
+  $("message").textContent=names[turn]+" wins! 🏆";
+ }else if(busy){
+  $("message").textContent=names[turn]+" is moving...";
+ }else if(rolled){
+  $("message").textContent="Select a glowing token.";
+ }else{
+  $("message").textContent=names[turn]+"'s turn. Roll the dice!";
+ }
+
+ $("roll").disabled=rolled||finished||busy;
 }
+
 function reset(){
  state=names.map(()=>[0,1,2,3].map(id=>({id,pos:-1})));
- turn=0;rolled=false;dice=0;finished=false;valid=[];
- $("dice").textContent="🎲";render();
-}
-function next(){
- turn=(turn+1)%4;rolled=false;valid=[];dice=0;$("dice").textContent="🎲";render();
- if(mode==="computer"&&turn!==0)setTimeout(cpuTurn,650);
-}
-function roll(){
- if(rolled||finished)return;
- dice=Math.floor(Math.random()*6)+1;
- $("dice").textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][dice];
- $("dice").classList.remove("spin");void $("dice").offsetWidth;$("dice").classList.add("spin");
- rolled=true;
- valid=state[turn].filter(t=>t.pos===-1?dice===6:t.pos+dice<=57).map(t=>t.id);
- if(!valid.length){render();setTimeout(next,850);return}
+ turn=0;
+ rolled=false;
+ dice=0;
+ finished=false;
+ valid=[];
+ busy=false;
+
+ $("dice").textContent="🎲";
  render();
- if(mode==="computer"&&turn!==0)setTimeout(cpuMove,650);
+
+ scheduleCPU();
 }
-function move(id){
- if(!rolled||!valid.includes(id)||finished)return;
- const moving=state[turn][id];
- moving.pos=moving.pos===-1?0:moving.pos+dice;
- let captured=false;
- if(moving.pos<52){
-  const square=(starts[turn]+moving.pos)%52;
-  if(!safe.includes(square)){
-   state.forEach((arr,p)=>{
-    if(p===turn)return;
-    arr.forEach(other=>{
-     if(other.pos>=0&&other.pos<52&&(starts[p]+other.pos)%52===square){
-      other.pos=-1;captured=true;
-     }
-    });
-   });
-  }
+
+function scheduleCPU(){
+ if(mode==="computer"&&turn!==0&&!finished&&!busy){
+  setTimeout(cpuTurn,700);
  }
- const six=dice===6;
- rolled=false;valid=[];
- if(state[turn].every(t=>t.pos===57)){finished=true;render();return}
- if(!six&&!captured)next();else render();
- if(mode==="computer"&&turn!==0&&!finished)setTimeout(cpuTurn,650);
 }
-function cpuTurn(){if(mode==="computer"&&turn!==0&&!rolled&&!finished)roll()}
+
+function next(){
+ turn=(turn+1)%4;
+ rolled=false;
+ valid=[];
+ dice=0;
+ $("dice").textContent="🎲";
+ render();
+ scheduleCPU();
+}
+
+function legalTokens(){
+ return state[turn].filter(t=>{
+  if(t.pos===-1)return dice===6;
+  return t.pos+dice<=57;
+ });
+}
+
+function roll(){
+ if(rolled||finished||busy)return;
+ if(mode==="computer"&&turn!==0)return;
+
+ const rollButton=$("roll");
+ rollButton.disabled=true;
+
+ const diceFaces=["⚀","⚁","⚂","⚃","⚄","⚅"];
+
+ $("dice").classList.remove("spin");
+ void $("dice").offsetWidth;
+ $("dice").classList.add("spin");
+
+ let ticks=0;
+ const animation=setInterval(()=>{
+  $("dice").textContent=diceFaces[Math.floor(Math.random()*6)];
+  ticks++;
+  if(ticks>=7){
+   clearInterval(animation);
+
+   dice=Math.floor(Math.random()*6)+1;
+   $("dice").textContent=diceFaces[dice-1];
+   sound(350+dice*80,.16,"triangle");
+
+   rolled=true;
+   valid=legalTokens().map(t=>t.id);
+
+   if(!valid.length){
+    rolled=false;
+    render();
+    $("message").textContent="No valid move. Turn passed!";
+    setTimeout(next,900);
+    return;
+   }
+
+   render();
+
+   if(mode==="computer"&&turn!==0){
+    setTimeout(cpuMove,650);
+   }
+  }
+ },65);
+}
+
+function captureTokens(){
+ const moving=state[turn][selectedToken];
+ if(moving.pos<0||moving.pos>=52)return false;
+
+ const square=(starts[turn]+moving.pos)%52;
+ if(safe.includes(square))return false;
+
+ let captured=false;
+
+ state.forEach((arr,p)=>{
+  if(p===turn)return;
+
+  arr.forEach(other=>{
+   if(
+    other.pos>=0&&
+    other.pos<52&&
+    (starts[p]+other.pos)%52===square
+   ){
+    other.pos=-1;
+    captured=true;
+   }
+  });
+ });
+
+ return captured;
+}
+
+let selectedToken=-1;
+
+async function move(id){
+ if(!rolled||!valid.includes(id)||finished||busy)return;
+
+ busy=true;
+ selectedToken=id;
+
+ const moving=state[turn][id];
+ const steps=dice;
+ const wasSix=steps===6;
+
+ rolled=false;
+ valid=[];
+ render();
+
+ // Animate the token one square at a time.
+ for(let i=0;i<steps;i++){
+  moving.pos=moving.pos===-1?0:moving.pos+1;
+
+  sound(440,.045,"sine");
+  render();
+  await wait(135);
+ }
+
+ // Capture only after the token reaches its destination.
+ const captured=captureTokens();
+
+ if(captured){
+  sound(780,.2,"triangle");
+ }
+
+ busy=false;
+ selectedToken=-1;
+
+ if(state[turn].every(t=>t.pos===57)){
+  finished=true;
+  render();
+  sound(900,.5,"sine");
+  return;
+ }
+
+ if(wasSix||captured){
+  rolled=false;
+  valid=[];
+  $("dice").textContent="🎲";
+  render();
+
+  $("message").textContent=captured
+   ?"Token captured! Play again."
+   :"You rolled a six! Play again.";
+
+  sound(650,.15,"triangle");
+  scheduleCPU();
+ }else{
+  next();
+ }
+}
+
+function cpuTurn(){
+ if(mode!=="computer"||turn===0||rolled||finished||busy)return;
+ roll();
+}
+
 function cpuMove(){
- if(turn===0||!valid.length)return;
- let choice=valid.find(id=>state[turn][id].pos===-1);
- if(choice===undefined)choice=valid[Math.floor(Math.random()*valid.length)];
- move(choice);
+ if(mode!=="computer"||turn===0||!rolled||!valid.length||busy)return;
+
+ const options=valid.map(id=>state[turn][id]);
+
+ // Prefer releasing a token from home.
+ let choice=options.find(t=>t.pos===-1);
+
+ // Otherwise prefer moves that finish a token.
+ if(!choice){
+  choice=options.find(t=>t.pos+dice===57);
+ }
+
+ // Then choose a move that captures an opponent.
+ if(!choice){
+  choice=options.find(t=>{
+   const destination=t.pos+dice;
+   if(destination>=52)return false;
+
+   const square=(starts[turn]+destination)%52;
+   if(safe.includes(square))return false;
+
+   return state.some((arr,p)=>
+    p!==turn&&arr.some(other=>
+     other.pos>=0&&other.pos<52&&
+     (starts[p]+other.pos)%52===square
+    )
+   );
+  });
+ }
+
+ // Otherwise choose a random legal token.
+ if(!choice){
+  choice=options[Math.floor(Math.random()*options.length)];
+ }
+
+ move(choice.id);
 }
+
 $("roll").onclick=roll;
-$("new").onclick=reset;
-$("mode").onchange=e=>{mode=e.target.value;reset();if(mode==="computer")cpuTurn()};
-buildBoard();reset();
+
+$("new").onclick=()=>{
+ if(busy)return;
+ reset();
+};
+
+$("mode").onchange=e=>{
+ mode=e.target.value;
+ reset();
+};
+
+buildBoard();
+reset();
 </script>
 </body>
 </html>
-
