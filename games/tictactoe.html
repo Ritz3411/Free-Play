@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe | FREE PLAY</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: #050b0e;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 430px;
+    text-align: center;
+}
+
+h1 {
+    color: #20c5c5;
+    margin: 20px 0 8px;
+    font-size: 32px;
+}
+
+.subtitle {
+    color: #9bb9bd;
+    margin-bottom: 24px;
+}
+
+.panel {
+    background: #101e23;
+    border: 1px solid #1c5960;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    color: #a9c7ca;
+    margin-bottom: 8px;
+}
+
+select, button {
+    font-size: 16px;
+    border-radius: 9px;
+    padding: 12px;
+}
+
+select {
+    width: 100%;
+    color: white;
+    background: #071216;
+    border: 1px solid #20aeb3;
+}
+
+.scoreboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.score {
+    background: #10252b;
+    border: 1px solid #17616a;
+    border-radius: 12px;
+    padding: 12px 5px;
+}
+
+.score strong {
+    display: block;
+    color: #22d2d2;
+    font-size: 25px;
+    margin-top: 6px;
+}
+
+.status {
+    color: #26d5d5;
+    font-size: 20px;
+    font-weight: bold;
+    min-height: 28px;
+    margin: 15px 0;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 18px 0;
+}
+
+.cell {
+    aspect-ratio: 1;
+    background: #10252b;
+    border: 2px solid #17616a;
+    border-radius: 14px;
+    color: white;
+    font-size: clamp(42px, 13vw, 65px);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cell:disabled {
+    cursor: default;
+    opacity: 1;
+}
+
+.cell.x {
+    color: #26d5d5;
+}
+
+.cell.o {
+    color: #ffbd59;
+}
+
+.cell.winner {
+    background: #18545b;
+    border-color: #43eeee;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.action {
+    border: none;
+    background: #18b8bd;
+    color: #031012;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.action.secondary {
+    background: #263b42;
+    color: white;
+    border: 1px solid #42717a;
+}
+
+.action:active {
+    transform: scale(0.97);
+}
+
+.back {
+    display: inline-block;
+    color: #21cccc;
+    text-decoration: none;
+    margin-top: 24px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>FREE PLAY</h1>
+    <p class="subtitle">Tic Tac Toe</p>
+
+    <div class="panel">
+        <label for="mode">Choose Game Mode</label>
+        <select id="mode">
+            <option value="computer">Play vs Computer</option>
+            <option value="two">Two Players</option>
+        </select>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score">Player X<strong id="scoreX">0</strong></div>
+        <div class="score">Draws<strong id="scoreDraw">0</strong></div>
+        <div class="score">Player O<strong id="scoreO">0</strong></div>
+    </div>
+
+    <div class="panel">
+        <div class="status" id="status">Player X's Turn</div>
+
+        <div class="board" id="board">
+            <button class="cell" data-index="0"></button>
+            <button class="cell" data-index="1"></button>
+            <button class="cell" data-index="2"></button>
+            <button class="cell" data-index="3"></button>
+            <button class="cell" data-index="4"></button>
+            <button class="cell" data-index="5"></button>
+            <button class="cell" data-index="6"></button>
+            <button class="cell" data-index="7"></button>
+            <button class="cell" data-index="8"></button>
+        </div>
+
+        <div class="controls">
+            <button class="action" id="restart">Restart Round</button>
+            <button class="action secondary" id="newGame">Reset Scores</button>
+        </div>
+    </div>
+
+    <a class="back" href="../index.html">← Back to FREE PLAY</a>
+
+</div>
+
+<script>
+const cells = [...document.querySelectorAll(".cell")];
+const statusText = document.getElementById("status");
+const mode = document.getElementById("mode");
+
+const scoreXText = document.getElementById("scoreX");
+const scoreOText = document.getElementById("scoreO");
+const scoreDrawText = document.getElementById("scoreDraw");
+
+const winningLines = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+];
+
+let board = Array(9).fill("");
+let currentPlayer = "X";
+let gameOver = false;
+let scores = { X: 0, O: 0, draw: 0 };
+
+function updateScores() {
+    scoreXText.textContent = scores.X;
+    scoreOText.textContent = scores.O;
+    scoreDrawText.textContent = scores.draw;
+}
+
+function checkWinner() {
+    for (const line of winningLines) {
+        const [a, b, c] = line;
+
+        if (board[a] &&
+            board[a] === board[b] &&
+            board[b] === board[c]) {
+            return line;
+        }
+    }
+    return null;
+}
+
+function finishTurn() {
+    const winningLine = checkWinner();
+
+    if (winningLine) {
+        gameOver = true;
+        winningLine.forEach(i => cells[i].classList.add("winner"));
+
+        statusText.textContent = currentPlayer + " Wins! 🎉";
+        scores[currentPlayer]++;
+        updateScores();
+        return true;
+    }
+
+    if (board.every(cell => cell !== "")) {
+        gameOver = true;
+        statusText.textContent = "It's a Draw!";
+        scores.draw++;
+        updateScores();
+        return true;
+    }
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+    statusText.textContent = "Player " + currentPlayer + "'s Turn";
+    return false;
+}
+
+function makeMove(index) {
+    if (gameOver || board[index] !== "") return;
+
+    board[index] = currentPlayer;
+    cells[index].textContent = currentPlayer;
+    cells[index].classList.add(currentPlayer.toLowerCase());
+    cells[index].disabled = true;
+
+    finishTurn();
+
+    if (!gameOver &&
+        mode.value === "computer" &&
+        currentPlayer === "O") {
+        setTimeout(computerMove, 350);
+    }
+}
+
+function computerMove() {
+    if (gameOver) return;
+
+    const empty = board
+        .map((value, index) => value === "" ? index : -1)
+        .filter(index => index !== -1);
+
+    // Try to win
+    let move = findBestMove("O");
+
+    // Block the player's winning move
+    if (move === null) move = findBestMove("X");
+
+    // Prefer the centre
+    if (move === null && board[4] === "") move = 4;
+
+    // Otherwise choose a random available square
+    if (move === null) {
+        move = empty[Math.floor(Math.random() * empty.length)];
+    }
+
+    makeMove(move);
+}
+
+function findBestMove(player) {
+    for (const line of winningLines) {
+        const values = line.map(i => board[i]);
+        const playerCount = values.filter(v => v === player).length;
+        const emptyCount = values.filter(v => v === "").length;
+
+        if (playerCount === 2 && emptyCount === 1) {
+            return line[values.indexOf("")];
+        }
+    }
+    return null;
+}
+
+function restartRound() {
+    board = Array(9).fill("");
+    currentPlayer = "X";
+    gameOver = false;
+
+    cells.forEach(cell => {
+        cell.textContent = "";
+        cell.disabled = false;
+        cell.className = "cell";
+    });
+
+    statusText.textContent = "Player X's Turn";
+}
+
+function resetGame() {
+    scores = { X: 0, O: 0, draw: 0 };
+    updateScores();
+    restartRound();
+}
+
+cells.forEach(cell => {
+    cell.addEventListener("click", () => {
+        makeMove(Number(cell.dataset.index));
+    });
+});
+
+document.getElementById("restart").addEventListener("click", restartRound);
+document.getElementById("newGame").addEventListener("click", resetGame);
+
+mode.addEventListener("change", () => {
+    resetGame();
+});
+</script>
+</body>
+</html>
