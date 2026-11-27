@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048 Puzzle | FREE PLAY</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:20px;background:#050b0e;color:white;
+ font-family:Arial,sans-serif;display:flex;justify-content:center;
+}
+.container{width:100%;max-width:430px;text-align:center}
+h1{color:#20c5c5;margin:15px 0 5px}
+.subtitle{color:#9bb9bd;margin-bottom:20px}
+.scores{display:flex;gap:10px;margin-bottom:15px}
+.score{
+ flex:1;background:#10252b;border:1px solid #17616a;
+ border-radius:10px;padding:12px;color:#a9c7ca
+}
+.score strong{display:block;color:#22d2d2;font-size:24px;margin-top:5px}
+.controls{display:flex;gap:10px;margin-bottom:15px}
+button{
+ border:0;border-radius:9px;padding:12px;
+ background:#18b8bd;color:#031012;font-weight:bold;
+ font-size:15px;cursor:pointer
+}
+.controls button{flex:1}
+.board{
+ display:grid;grid-template-columns:repeat(4,1fr);gap:9px;
+ background:#10252b;border:2px solid #17616a;
+ padding:9px;border-radius:14px;touch-action:none;
+}
+.tile{
+ aspect-ratio:1;background:#20353b;border-radius:8px;
+ display:flex;align-items:center;justify-content:center;
+ font-size:clamp(19px,6vw,29px);font-weight:bold;color:white
+}
+.tile[data-value="2"]{background:#34545b}
+.tile[data-value="4"]{background:#28747a}
+.tile[data-value="8"]{background:#168e96}
+.tile[data-value="16"]{background:#087c89}
+.tile[data-value="32"]{background:#08718a}
+.tile[data-value="64"]{background:#075d79}
+.tile[data-value="128"]{background:#b28a37}
+.tile[data-value="256"]{background:#c18b29}
+.tile[data-value="512"]{background:#d17a25}
+.tile[data-value="1024"]{background:#c95d35;font-size:22px}
+.tile[data-value="2048"]{background:#e4b52c;color:#172024;font-size:22px}
+.status{min-height:28px;margin:15px 0;color:#25d4d4;font-weight:bold}
+.back{display:inline-block;margin-top:22px;color:#20c5c5;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>FREE PLAY</h1>
+<p class="subtitle">2048 Puzzle</p>
+
+<div class="scores">
+ <div class="score">SCORE<strong id="score">0</strong></div>
+ <div class="score">BEST<strong id="best">0</strong></div>
+</div>
+
+<div class="controls">
+ <button id="undo">↶ Undo</button>
+ <button id="restart">↻ New Game</button>
+</div>
+
+<div class="board" id="board"></div>
+<div class="status" id="status">Combine tiles to reach 2048!</div>
+<a class="back" href="../index.html">← Back to FREE PLAY</a>
+</div>
+
+<script>
+const boardElement=document.getElementById("board");
+const scoreElement=document.getElementById("score");
+const bestElement=document.getElementById("best");
+const statusElement=document.getElementById("status");
+
+let board,score,best=0,previous=null,won=false,over=false;
+try{best=Number(localStorage.getItem("freePlay2048Best"))||0}catch(e){}
+
+function saveBest(){
+ try{localStorage.setItem("freePlay2048Best",best)}catch(e){}
+ bestElement.textContent=best;
+}
+
+function snapshot(){
+ previous={board:board.slice(),score,won,over};
+}
+
+function addTile(){
+ const empty=board.map((v,i)=>v===0?i:-1).filter(i=>i!==-1);
+ if(!empty.length)return;
+ const i=empty[Math.floor(Math.random()*empty.length)];
+ board[i]=Math.random()<0.9?2:4;
+}
+
+function draw(){
+ boardElement.innerHTML="";
+ board.forEach(v=>{
+  const tile=document.createElement("div");
+  tile.className="tile";
+  tile.dataset.value=v||"0";
+  tile.textContent=v||"";
+  boardElement.appendChild(tile);
+ });
+ scoreElement.textContent=score;
+ bestElement.textContent=best;
+}
+
+function start(){
+ board=Array(16).fill(0);
+ score=0;won=false;over=false;previous=null;
+ addTile();addTile();draw();
+ statusElement.textContent="Combine tiles to reach 2048!";
+}
+
+function slideLine(line){
+ let values=line.filter(v=>v!==0);
+ for(let i=0;i<values.length-1;i++){
+  if(values[i]===values[i+1]){
+   values[i]*=2;
+   score+=values[i];
+   values.splice(i+1,1);
+  }
+ }
+ while(values.length<4)values.push(0);
+ return values;
+}
+
+function move(direction){
+ if(over)return;
+ const old=board.slice();
+ snapshot();
+
+ for(let n=0;n<4;n++){
+  let indices=[];
+  for(let k=0;k<4;k++){
+   if(direction==="left")indices.push(n*4+k);
+   if(direction==="right")indices.push(n*4+3-k);
+   if(direction==="up")indices.push(k*4+n);
+   if(direction==="down")indices.push((3-k)*4+n);
+  }
+  const result=slideLine(indices.map(i=>board[i]));
+  indices.forEach((index,k)=>board[index]=result[k]);
+ }
+
+ if(board.every((v,i)=>v===old[i])){
+  previous=null;
+  return;
+ }
+
+ addTile();
+
+ if(score>best){best=score;saveBest()}
+
+ if(!won&&board.includes(2048)){
+  won=true;
+  statusElement.textContent="You reached 2048! 🎉 Keep playing!";
+ }else if(!won){
+  statusElement.textContent="Great move! Keep going!";
+ }
+
+ if(!board.includes(0)&&!hasMoves()){
+  over=true;
+  statusElement.textContent="Game Over! Start a new game.";
+ }
+
+ draw();
+}
+
+function hasMoves(){
+ for(let i=0;i<16;i++){
+  if(board[i]===0)return true;
+  if(i%4!==3&&board[i]===board[i+1])return true;
+  if(i<12&&board[i]===board[i+4])return true;
+ }
+ return false;
+}
+
+function undo(){
+ if(!previous)return;
+ board=previous.board;
+ score=previous.score;
+ won=previous.won;
+ over=previous.over;
+ previous=null;
+ draw();
+ statusElement.textContent="Previous move restored.";
+}
+
+document.addEventListener("keydown",e=>{
+ const keys={
+  ArrowLeft:"left",ArrowRight:"right",
+  ArrowUp:"up",ArrowDown:"down"
+ };
+ if(keys[e.key]){
+  e.preventDefault();
+  move(keys[e.key]);
+ }
+});
+
+let startX=0,startY=0;
+boardElement.addEventListener("touchstart",e=>{
+ const t=e.changedTouches[0];
+ startX=t.clientX;startY=t.clientY;
+},{passive:true});
+
+boardElement.addEventListener("touchend",e=>{
+ const t=e.changedTouches[0];
+ const dx=t.clientX-startX,dy=t.clientY-startY;
+ if(Math.max(Math.abs(dx),Math.abs(dy))<25)return;
+ if(Math.abs(dx)>Math.abs(dy))
+  move(dx>0?"right":"left");
+ else
+  move(dy>0?"down":"up");
+},{passive:true});
+
+document.getElementById("undo").onclick=undo;
+document.getElementById("restart").onclick=start;
+
+saveBest();
+start();
+</script>
+</body>
+</html>
