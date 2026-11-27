@@ -115,29 +115,20 @@ const pale=["#ffd9df","#d5ffeb","#fff2c5","#d9edff"];
 // Correct starting positions in clockwise order.
 const starts=[0,13,26,39];
 
-// Build a continuous 52-square clockwise route.
-// Each quarter contains 13 unique squares.
-const baseTrack=[
+const track=[
  [6,1],[6,2],[6,3],[6,4],[6,5],
  [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
- [0,7],[0,8]
+ [0,7],[0,8],
+ [1,8],[2,8],[3,8],[4,8],[5,8],
+ [6,9],[6,10],[6,11],[6,12],[6,13],
+ [7,14],[8,13],[8,12],[8,11],[8,10],[8,9],
+ [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+ [14,7],[14,6],
+ [13,6],[12,6],[11,6],[10,6],[9,6],
+ [8,5],[8,4],[8,3],[8,2],[8,1],
+ [7,0],[6,0],[5,0],[4,0],[3,0]
 ];
 
-const track=[];
-
-for(let rotation=0;rotation<4;rotation++){
- baseTrack.forEach(([r,c])=>{
-  let nr=r,nc=c;
-
-  for(let i=0;i<rotation;i++){
-   [nr,nc]=[nc,14-nr];
-  }
-
-  track.push([nr,nc]);
- });
-}
-
-// Five home-lane squares for each colour.
 const lanes=[
  [[7,1],[7,2],[7,3],[7,4],[7,5]],
  [[1,7],[2,7],[3,7],[4,7],[5,7]],
