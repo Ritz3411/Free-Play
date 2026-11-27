@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FREE PLAY | Ludo</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+ background:radial-gradient(circle at top,#18264c,#070914 65%);
+ color:#fff;font-family:Arial,sans-serif;
+ min-height:100vh;padding:16px;text-align:center
+}
+h1{color:#00d9ff;text-shadow:0 0 18px #00c8ff;margin:10px}
+.subtitle{color:#aebbd7;margin-bottom:18px}
+.panel{
+ max-width:720px;margin:15px auto;background:#111a30;
+ border:1px solid #00c8ff66;border-radius:18px;padding:18px;
+ box-shadow:0 0 25px #00c8ff16
+}
+h2{color:#00d9ff;margin-bottom:14px}
+button,select{
+ border:1px solid #00c8ff;border-radius:10px;
+ padding:12px 18px;background:#101d39;color:white;
+ font-size:15px;font-weight:bold;cursor:pointer;margin:5px
+}
+button:hover{background:#087fae;box-shadow:0 0 15px #00c8ff66}
+button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:linear-gradient(100deg,#007fae,#633ac7)}
+#board{
+ width:min(94vw,600px);height:auto;aspect-ratio:1;
+ background:#0b1021;border:3px solid #00c8ff;
+ border-radius:16px;display:block;margin:12px auto;
+ box-shadow:0 0 25px #00c8ff55;
+ touch-action:manipulation
+}
+#dice{
+ font-size:48px;display:inline-block;margin:8px;
+ color:#00e5ff;text-shadow:0 0 18px #00c8ff;
+ min-width:65px
+}
+#status{color:#dce8ff;font-weight:bold;margin:12px}
+#players{display:flex;justify-content:center;flex-wrap:wrap;gap:9px}
+.player{
+ padding:9px 13px;border:1px solid #405174;
+ border-radius:9px;background:#0b1225;font-size:13px
+}
+.player.active{border-color:#00e5ff;box-shadow:0 0 14px #00c8ff66}
+.red{color:#ff5252}.green{color:#00ef9b}
+.yellow{color:#ffd43b}.blue{color:#42a5ff}
+#message{color:#aebbd7;min-height:24px;margin:10px}
+.hidden{display:none!important}
+#win{font-size:25px;color:#00f5a0;margin:15px}
+footer{color:#71809f;margin:25px;font-size:12px}
+</style>
+</head>
+
+<body>
+
+<h1>🎲 FREE PLAY LUDO</h1>
+<p class="subtitle">Roll the dice. Move your tokens. Win the game!</p>
+
+<div class="panel" id="setup">
+<h2>Choose Your Game Mode</h2>
+
+<button class="primary" onclick="startGame('local')">
+👥 Play with Friends
+</button>
+
+<button class="primary" onclick="startGame('computer')">
+🤖 Play vs Computer
+</button>
+
+<p style="margin-top:18px;color:#aebbd7">Local multiplayer players:</p>
+
+<select id="playerCount">
+<option value="2">2 Players</option>
+<option value="3">3 Players</option>
+<option value="4" selected>4 Players</option>
+</select>
+</div>
+
+<div class="panel hidden" id="game">
+
+<div id="players"></div>
+
+<canvas id="board" width="600" height="600"></canvas>
+
+<div id="status">Red's turn</div>
+
+<div id="dice">⚀</div>
+
+<div>
+<button class="primary" id="rollBtn" onclick="rollDice()">🎲 ROLL DICE</button>
+<button onclick="newGame()">↻ RESTART</button>
+</div>
+
+<div id="message">Roll a six to bring a token out!</div>
+
+<div id="win" class="hidden"></div>
+<button id="backBtn" class="hidden" onclick="backToMenu()">MAIN MENU</button>
+
+</div>
+
+<footer>FREE PLAY © 2026 | LUDO</footer>
+
+<script>
+const canvas=document.getElementById("board");
+const ctx=canvas.getContext("2d");
+
+const colors=[
+ {name:"Red",hex:"#ff4545",dark:"#641d29",start:0},
+ {name:"Green",hex:"#00dc91",dark:"#07583f",start:13},
+ {name:"Yellow",hex:"#ffd43b",dark:"#765c13",start:26},
+ {name:"Blue",hex:"#399cff",dark:"#183d75",start:39}
+];
+
+const safe=[0,8,13,21,26,34,39,47];
+const center={x:300,y:300};
+const radius=207;
+let players=[];
+let current=0;
+let dice=0;
+let rolling=false;
+let selected=false;
+let mode="local";
+let finished=false;
+let audio=null;
+let tokenHits=[];
+let lastRoll=1;
+
+function sound(freq=500,duration=.12){
+ try{
+  audio=audio||new(window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  const oscillator=audio.createOscillator();
+  const gain=audio.createGain();
+  oscillator.frequency.value=freq;
+  oscillator.type="sine";
+  gain.gain.setValueAtTime(.09,audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+  oscillator.connect(gain);
+  gain.connect(audio.destination);
+  oscillator.start();
+  oscillator.stop(audio.currentTime+duration);
+ }catch(e){}
+}
+
+function point(index){
+ const angle=(-90+index*360/52)*Math.PI/180;
+ return {
+  x:center.x+radius*Math.cos(angle),
+  y:center.y+radius*Math.sin(angle)
+ };
+}
+
+function homePoint(player,step){
+ const angle=(-90+player*90)*Math.PI/180;
+ const r=radius-step*27;
+ return {
+  x:center.x+r*Math.cos(angle),
+  y:center.y+r*Math.sin(angle)
+ };
+}
+
+function basePoint(player,token){
+ const positions=[
+  [[105,105],[165,105],[105,165],[165,165]],
+  [[435,105],[495,105],[435,165],[495,165]],
+  [[435,435],[495,435],[435,495],[495,495]],
+  [[105,435],[165,435],[105,495],[165,495]]
+ ];
+ return {x:positions[player][token][0],y:positions[player][token][1]};
+}
+
+function startGame(chosenMode){
+ mode=chosenMode;
+ const count=mode==="computer"?4:Number(document.getElementById("playerCount").value);
+
+ players=colors.slice(0,count).map((c,i)=>({
+  ...c,
+  computer:mode==="computer"&&i!==0,
+  tokens:[-1,-1,-1,-1]
+ }));
+
+ current=0;
+ dice=0;
+ finished=false;
+ rolling=false;
+ selected=false;
+
+ document.getElementById("setup").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ document.getElementById("win").classList.add("hidden");
+ document.getElementById("backBtn").classList.add("hidden");
+
+ updateUI();
+ drawBoard();
+ document.getElementById("message").textContent=
+  mode==="computer"?"You are Red. Beat the computer players!":"Pass the device and enjoy Ludo!";
+}
+
+function newGame(){
+ startGame(mode);
+}
+
+function backToMenu(){
+ document.getElementById("game").classList.add("hidden");
+ document.getElementById("setup").classList.remove("hidden");
+}
+
+function drawBoard(){
+ ctx.clearRect(0,0,600,600);
+ ctx.fillStyle="#0a1022";
+ ctx.fillRect(0,0,600,600);
+
+ // Four home bases
+ const bases=[
+  [30,30,"#ff4545"],
+  [390,30,"#00dc91"],
+  [390,390,"#ffd43b"],
+  [30,390,"#399cff"]
+ ];
+
+ bases.forEach(([x,y,c])=>{
+  ctx.fillStyle=c+"30";
+  ctx.fillRect(x,y,180,180);
+  ctx.strokeStyle=c;
+  ctx.lineWidth=3;
+  ctx.strokeRect(x,y,180,180);
+  ctx.fillStyle=c+"22";
+  ctx.fillRect(x+25,y+25,130,130);
+ });
+
+ // Circular track
+ for(let i=0;i<52;i++){
+  const p=point(i);
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,12,0,Math.PI*2);
+  ctx.fillStyle=safe.includes(i)?"#e8efff":"#25314c";
+  ctx.fill();
+  ctx.strokeStyle=safe.includes(i)?"#00e5ff":"#62708f";
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+
+  if([0,13,26,39].includes(i)){
+   ctx.fillStyle=colors.find(c=>c.start===i).hex;
+   ctx.beginPath();
+   ctx.arc(p.x,p.y,6,0,Math.PI*2);
+   ctx.fill();
+  }
+ }
+
+ // Home lanes
+ players.forEach((p,i)=>{
+  ctx.strokeStyle=p.hex;
+  ctx.lineWidth=7;
+  ctx.globalAlpha=.8;
+  ctx.beginPath();
+  const start=homePoint(i,0);
+  const end=homePoint(i,5);
+  ctx.moveTo(start.x,start.y);
+  ctx.lineTo(end.x,end.y);
+  ctx.stroke();
+  ctx.globalAlpha=1;
+ });
+
+ // Centre
+ ctx.beginPath();
+ ctx.arc(300,300,48,0,Math.PI*2);
+ ctx.fillStyle="#182744";
+ ctx.fill();
+ ctx.strokeStyle="#00d9ff";
+ ctx.lineWidth=3;
+ ctx.stroke();
+ ctx.fillStyle="#fff";
+ ctx.font="bold 15px Arial";
+ ctx.textAlign="center";
+ ctx.fillText("HOME",300,305);
+
+ // Tokens
+ tokenHits=[];
+ players.forEach((player,pi)=>{
+  player.tokens.forEach((progress,ti)=>{
+   let p;
+   if(progress===-1)p=basePoint(pi,ti);
+   else if(progress>=52)p=progress===57?center:homePoint(pi,progress-51);
+   else p=point((player.start+progress)%52);
+
+   tokenHits.push({x:p.x,y:p.y,pi,ti});
+
+   ctx.beginPath();
+   ctx.arc(p.x,p.y,14,0,Math.PI*2);
+   ctx.fillStyle=player.hex;
+   ctx.fill();
+   ctx.strokeStyle="#fff";
+   ctx.lineWidth=2;
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.arc(p.x-4,p.y-4,4,0,Math.PI*2);
+   ctx.fillStyle="#ffffff99";
+   ctx.fill();
+
+   if(pi===current&&dice){
+    const valid=getMovableTokens();
+    if(valid.includes(ti)){
+     ctx.beginPath();
+     ctx.arc(p.x,p.y,20,0,Math.PI*2);
+     ctx.strokeStyle="#fff";
+     ctx.lineWidth=2;
+     ctx.stroke();
+    }
+   }
+  });
+ });
+}
+
+function getMovableTokens(){
+ if(!dice)return [];
+ return players[current].tokens
+  .map((p,i)=>({p,i}))
+  .filter(({p})=>{
+   if(p===57)return false;
+   if(p===-1)return dice===6;
+   return p+dice<=57;
+  })
+  .map(x=>x.i);
+}
+
+function rollDice(){
+ if(finished||rolling||dice||players[current].computer)return;
+ rolling=true;
+ const btn=document.getElementById("rollBtn");
+ btn.disabled=true;
+ let count=0;
+
+ const timer=setInterval(()=>{
+  lastRoll=Math.floor(Math.random()*6)+1;
+  document.getElementById("dice").textContent=
+   ["","⚀","⚁","⚂","⚃","⚄","⚅"][lastRoll];
+  sound(300+lastRoll*70,.05);
+  count++;
+  if(count>=12){
+   clearInterval(timer);
+   dice=lastRoll;
+   rolling=false;
+   selected=false;
+   document.getElementById("message").textContent=
+    dice===6?"🎉 Six! Bring a token out or move one.":"Choose a glowing token to move.";
+   drawBoard();
+   if(getMovableTokens().length===0){
+    document.getElementById("message").textContent="No valid moves. Next player's turn!";
+    setTimeout(nextTurn,1100);
+   }else{
+    btn.disabled=true;
+    if(players[current].computer)computerMove();
+   }
+  }
+ },75);
+}
+
+function moveToken(index){
+ if(finished||!dice||rolling||selected)return;
+ if(!getMovableTokens().includes(index))return;
+
+ selected=true;
+ const player=players[current];
+ let old=player.tokens[index];
+
+ player.tokens[index]=old===-1?0:old+dice;
+ const newProgress=player.tokens[index];
+
+ sound(700,.13);
+
+ // Capture opponents
+ if(newProgress>=0&&newProgress<52){
+  const position=(player.start+newProgress)%52;
+  if(!safe.includes(position)){
+   players.forEach((other,pi)=>{
+    if(pi===current)return;
+    other.tokens=other.tokens.map(progress=>{
+     if(progress>=0&&progress<52&&
+       (other.start+progress)%52===position){
+      sound(180,.2);
+      return -1;
+     }
+     return progress;
+    });
+   });
+  }
+ }
+
+ if(newProgress===57){
+  document.getElementById("message").textContent="🏠 Token reached home!";
+  sound(950,.25);
+ }
+
+ drawBoard();
+
+ if(player.tokens.every(x=>x===57)){
+  finished=true;
+  document.getElementById("win").textContent=
+   "🏆 "+player.name+" WINS!";
+  document.getElementById("win").classList.remove("hidden");
+  document.getElementById("backBtn").classList.remove("hidden");
+  document.getElementById("rollBtn").disabled=true;
+  sound(1000,.5);
+  return;
+ }
+
+ const gotSix=dice===6;
+ dice=0;
+ selected=false;
+
+ if(gotSix){
+  document.getElementById("message").textContent="🎉 You rolled a six! Roll again!";
+  updateUI();
+  drawBoard();
+  if(player.computer)setTimeout(computerRoll,800);
+ }else{
+  nextTurn();
+ }
+}
+
+function nextTurn(){
+ if(finished)return;
+ dice=0;
+ selected=false;
+ current=(current+1)%players.length;
+ updateUI();
+ drawBoard();
+ document.getElementById("message").textContent=
+  players[current].name+"'s turn. Roll the dice!";
+ if(players[current].computer)setTimeout(computerRoll,900);
+}
+
+function computerRoll(){
+ if(finished||!players[current].computer)return;
+ rollComputer();
+}
+
+function rollComputer(){
+ if(finished||!players[current].computer)return;
+ let count=0;
+ rolling=true;
+
+ const timer=setInterval(()=>{
+  lastRoll=Math.floor(Math.random()*6)+1;
+  document.getElementById("dice").textContent=
+   ["","⚀","⚁","⚂","⚃","⚄","⚅"][lastRoll];
+  count++;
+  if(count>=10){
+   clearInterval(timer);
+   dice=lastRoll;
+   rolling=false;
+   drawBoard();
+   const valid=getMovableTokens();
+   if(valid.length===0){
+    dice=0;
+    setTimeout(nextTurn,700);
+   }else{
+    const choice=valid[Math.floor(Math.random()*valid.length)];
+    setTimeout(()=>moveToken(choice),700);
+   }
+  }
+ },70);
+}
+
+function updateUI(){
+ document.getElementById("players").innerHTML=
+  players.map((p,i)=>`
+   <div class="player ${i===current?'active':''}">
+   <span class="${p.name.toLowerCase()}">● ${p.name}</span>
+   ${p.computer?"🤖":"👤"}
+   <br>${p.tokens.filter(t=>t===57).length}/4 home
+   </div>`).join("");
+
+ document.getElementById("status").textContent=
+  players[current].name+"'s turn";
+
+ document.getElementById("dice").textContent=
+  ["","⚀","⚁","⚂","⚃","⚄","⚅"][dice||1];
+
+ document.getElementById("rollBtn").disabled=
+  players[current].computer||finished||dice!==0||rolling;
+}
+
+canvas.addEventListener("click",function(event){
+ if(!dice||rolling||finished||players[current].computer)return;
+ const rect=canvas.getBoundingClientRect();
+ const x=(event.clientX-rect.left)*600/rect.width;
+ const y=(event.clientY-rect.top)*600/rect.height;
+
+ let closest=null;
+ let distance=Infinity;
+
+ tokenHits.forEach(t=>{
+  if(t.pi!==current||!getMovableTokens().includes(t.ti))return;
+  const d=Math.hypot(t.x-x,t.y-y);
+  if(d<distance){distance=d;closest=t;}
+ });
+
+ if(closest&&distance<28)moveToken(closest.ti);
+});
+
+canvas.addEventListener("touchstart",function(){},{passive:true});
+
+// Initial board preview
+drawBoard();
+</script>
+
+</body>
+</html>
