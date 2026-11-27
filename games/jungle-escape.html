@@ -1,0 +1,400 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jungle Escape | FREE PLAY</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:15px;background:#050b0e;color:white;
+ font-family:Arial,sans-serif;text-align:center
+}
+.container{max-width:700px;margin:auto}
+h1{color:#22cece}
+.hud{
+ display:flex;justify-content:space-around;gap:6px;
+ background:#10252b;padding:12px;border-radius:12px;
+ margin:14px 0;border:1px solid #17616a
+}
+.hud strong{display:block;color:#25d5d5;margin-top:5px}
+canvas{
+ width:100%;height:auto;display:block;
+ border:2px solid #20b9bb;border-radius:12px;
+ touch-action:none
+}
+button{
+ border:0;border-radius:10px;padding:14px;
+ background:#18b8bd;color:#031012;
+ font-size:16px;font-weight:bold;touch-action:none
+}
+#jump{background:#edbd39}
+.controls{display:flex;justify-content:center;gap:12px;margin:16px 0}
+#message{min-height:26px;color:#28d7d7;font-weight:bold}
+.back{color:#20caca;text-decoration:none;display:block;margin:20px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌴 JUNGLE ESCAPE</h1>
+<p>Three levels. One great adventure!</p>
+
+<div class="hud">
+ <div>LEVEL<strong id="level">1 / 3</strong></div>
+ <div>COINS<strong id="coins">0</strong></div>
+ <div>LIVES<strong id="lives">❤️❤️❤️</strong></div>
+ <div>SCORE<strong id="score">0</strong></div>
+</div>
+
+<canvas id="game" width="640" height="360"></canvas>
+<p id="message">Press START to begin!</p>
+<button id="start">START ADVENTURE</button>
+
+<div class="controls">
+ <button id="left">◀ LEFT</button>
+ <button id="jump">JUMP ⬆</button>
+ <button id="right">RIGHT ▶</button>
+</div>
+
+<p>Collect coins and glowing stars. Avoid obstacles and reach the checkpoint!</p>
+<a class="back" href="../index.html">← Back to FREE PLAY</a>
+</div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const W=640,H=360;
+
+const $=id=>document.getElementById(id);
+
+let player,obstacles,coins,powerups;
+let level=1,score=0,coinCount=0,lives=3;
+let running=false,gameOver=false,frame=0;
+let speed=3,moveLeft=false,moveRight=false;
+let invincible=0,boost=0,checkpoint=0;
+let best=0;
+
+try{best=Number(localStorage.getItem("jungleEscapeBest"))||0}catch(e){}
+
+const levelNames=["Forest Adventure","River Crossing","Ancient Temple"];
+
+function updateHUD(){
+ $("level").textContent=level+" / 3";
+ $("coins").textContent=coinCount;
+ $("lives").textContent="❤️".repeat(lives);
+ $("score").textContent=score;
+}
+
+function startGame(){
+ level=1;score=0;coinCount=0;lives=3;
+ checkpoint=0;invincible=0;boost=0;
+ beginLevel();
+ $("start").textContent="RESTART ADVENTURE";
+}
+
+function beginLevel(){
+ player={x:80,y:240,w:30,h:42,vy:0,onGround:false};
+ obstacles=[];coins=[];powerups=[];
+ frame=0;speed=2.8+level*.35;
+ running=true;gameOver=false;
+ moveLeft=false;moveRight=false;
+ $("message").textContent=levelNames[level-1]+" — Reach the checkpoint!";
+ spawnObjects();
+ updateHUD();
+ requestAnimationFrame(loop);
+}
+
+function spawnObjects(){
+ for(let i=0;i<5;i++){
+  obstacles.push({
+   x:650+i*250+Math.random()*90,
+   y:285,w:30+Math.random()*25,h:35
+  });
+ }
+ for(let i=0;i<12;i++){
+  coins.push({
+   x:720+i*135,y:170+Math.random()*85,
+   r:10,collected:false
+  });
+ }
+}
+
+function drawBackground(){
+ const sky=["#80cbd0","#67b9c9","#302e52"][level-1];
+ ctx.fillStyle=sky;
+ ctx.fillRect(0,0,W,H);
+
+ if(level===1){
+  ctx.fillStyle="#39804b";
+  for(let i=0;i<9;i++){
+   let x=(i*100-frame*.35%900+900)%900;
+   ctx.beginPath();ctx.arc(x,100,55,0,Math.PI*2);ctx.fill();
+   ctx.fillRect(x-8,100,16,190);
+  }
+ }else if(level===2){
+  ctx.fillStyle="#1688a5";
+  ctx.fillRect(0,210,W,90);
+  ctx.fillStyle="#b5e5ee";
+  for(let i=0;i<8;i++){
+   let x=(i*100-frame*1.5%800+800)%800;
+   ctx.fillRect(x,235,50,4);
+  }
+  ctx.fillStyle="#327d43";
+  for(let i=0;i<8;i++){
+   let x=(i*100-frame*.3%800+800)%800;
+   ctx.fillRect(x,80,30,150);
+  }
+ }else{
+  ctx.fillStyle="#75604b";
+  for(let i=0;i<8;i++){
+   let x=(i*100-frame*.3%800+800)%800;
+   ctx.fillRect(x,90,45,200);
+   ctx.fillStyle="#b19a75";
+   ctx.fillRect(x+8,100,28,18);
+   ctx.fillStyle="#75604b";
+  }
+  ctx.fillStyle="#d8c17e";
+  ctx.fillRect(0,280,W,10);
+ }
+
+ ctx.fillStyle=level===2?"#287d55":level===3?"#665044":"#72502d";
+ ctx.fillRect(0,290,W,70);
+ ctx.fillStyle=level===3?"#bca06e":"#398b3f";
+ ctx.fillRect(0,285,W,12);
+
+ // Checkpoint marker
+ ctx.fillStyle="#f7d34b";
+ ctx.fillRect(590,190,5,95);
+ ctx.beginPath();
+ ctx.moveTo(595,190);ctx.lineTo(625,202);
+ ctx.lineTo(595,214);ctx.fill();
+}
+
+function drawPlayer(){
+ if(invincible>0&&Math.floor(frame/5)%2===0)return;
+ ctx.fillStyle="#263c28";
+ ctx.fillRect(player.x+7,player.y+7,17,22);
+ ctx.fillStyle="#e8b77c";
+ ctx.beginPath();ctx.arc(player.x+15,player.y+5,10,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#39271b";
+ ctx.fillRect(player.x+5,player.y-5,21,8);
+ ctx.fillStyle=level===3?"#48b7da":"#df8b37";
+ ctx.fillRect(player.x+4,player.y+16,23,18);
+ ctx.fillStyle="#24384b";
+ ctx.fillRect(player.x+5,player.y+34,8,9);
+ ctx.fillRect(player.x+18,player.y+34,8,9);
+}
+
+function drawObjects(){
+ obstacles.forEach(o=>{
+  ctx.fillStyle=level===3?"#ad9270":"#68462b";
+  ctx.fillRect(o.x,o.y,o.w,o.h);
+  ctx.fillStyle="#b99b72";
+  ctx.fillRect(o.x+5,o.y+5,o.w-10,7);
+ });
+
+ coins.forEach(c=>{
+  if(c.collected)return;
+  ctx.fillStyle="#ffd43b";
+  ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#bd8012";ctx.lineWidth=3;ctx.stroke();
+ });
+
+ powerups.forEach(p=>{
+  if(p.collected)return;
+  ctx.fillStyle="#a5ffff";
+  ctx.beginPath();ctx.arc(p.x,p.y,13,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#087d8b";
+  ctx.font="bold 16px Arial";
+  ctx.fillText("★",p.x-7,p.y+6);
+ });
+}
+
+function collision(a,b){
+ return a.x<b.x+b.w&&a.x+a.w>b.x&&
+ a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+
+function update(){
+ frame++;
+ if(invincible>0)invincible--;
+ if(boost>0)boost--;
+
+ if(moveLeft)player.x-=3;
+ if(moveRight)player.x+=3;
+ player.x=Math.max(0,Math.min(W-player.w,player.x));
+
+ player.vy+=.55;
+ player.y+=player.vy;
+
+ if(player.y+player.h>=285){
+  player.y=285-player.h;
+  player.vy=0;player.onGround=true;
+ }else player.onGround=false;
+
+ obstacles.forEach(o=>o.x-=speed+(boost>0?1:0));
+ coins.forEach(c=>c.x-=speed);
+ powerups.forEach(p=>p.x-=speed);
+
+ obstacles=obstacles.filter(o=>o.x>-80);
+ coins=coins.filter(c=>c.x>-30&&!c.collected);
+ powerups=powerups.filter(p=>p.x>-30&&!p.collected);
+
+ if(frame%Math.max(65,115-level*10)===0){
+  obstacles.push({x:680,y:285,w:35+Math.random()*20,h:35});
+ }
+
+ if(frame%65===0){
+  coins.push({x:680,y:175+Math.random()*75,r:10,collected:false});
+ }
+
+ if(frame%480===0){
+  powerups.push({x:680,y:200,r:13,collected:false});
+ }
+
+ const p={x:player.x+3,y:player.y+3,w:player.w-6,h:player.h-4};
+
+ obstacles.forEach(o=>{
+  if(collision(p,o)&&invincible===0){
+   o.x=-100;
+   lives--;
+   invincible=100;
+   updateHUD();
+   $("message").textContent="Obstacle! Be careful!";
+   if(lives<=0)endGame();
+  }
+ });
+
+ coins.forEach(c=>{
+  if(!c.collected&&
+  player.x<c.x+c.r&&player.x+player.w>c.x-c.r&&
+  player.y<c.y+c.r&&player.y+player.h>c.y-c.r){
+   c.collected=true;coinCount++;score+=20;updateHUD();
+  }
+ });
+
+ powerups.forEach(pw=>{
+  if(!pw.collected&&
+  player.x<pw.x+13&&player.x+player.w>pw.x-13&&
+  player.y<pw.y+13&&player.y+player.h>pw.y-13){
+   pw.collected=true;
+   boost=300;score+=50;
+   $("message").textContent="STAR POWER! Bonus activated!";
+   updateHUD();
+  }
+ });
+
+ score++;
+
+ // Checkpoint is reached after enough distance
+ if(frame>=checkpoint+850){
+  checkpoint=frame;
+  if(level<3){
+   running=false;
+   score+=100;
+   updateHUD();
+   $("message").textContent="Checkpoint reached! +100 points!";
+   $("start").textContent="NEXT LEVEL";
+   $("start").onclick=()=>{
+    $("start").onclick=null;
+    level++;
+    beginLevel();
+   };
+  }else{
+   winGame();
+  }
+ }
+ updateHUD();
+}
+
+function draw(){
+ drawBackground();
+ drawObjects();
+ drawPlayer();
+}
+
+function loop(){
+ if(!running)return;
+ update();
+ draw();
+ if(running)requestAnimationFrame(loop);
+}
+
+function jump(){
+ if(running&&player.onGround){
+  player.vy=-12;
+  player.onGround=false;
+ }
+}
+
+function endGame(){
+ running=false;gameOver=true;
+ $("message").textContent="Adventure Over! Final score: "+score;
+ $("start").textContent="PLAY AGAIN";
+ $("start").onclick=()=>{$("start").onclick=null;startGame()};
+ saveBest();
+}
+
+function winGame(){
+ running=false;
+ score+=200;
+ updateHUD();
+ $("message").textContent="🏆 YOU ESCAPED THE JUNGLE! Final score: "+score;
+ $("start").textContent="PLAY AGAIN";
+ $("start").onclick=()=>{$("start").onclick=null;startGame()};
+ saveBest();
+}
+
+function saveBest(){
+ if(score>best){
+  best=score;
+  try{localStorage.setItem("jungleEscapeBest",best)}catch(e){}
+ }
+}
+
+function setControl(button,direction){
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  if(direction==="jump"){jump();return}
+  if(direction==="left")moveLeft=true;
+  if(direction==="right")moveRight=true;
+ });
+ ["pointerup","pointerleave","pointercancel"].forEach(event=>{
+  button.addEventListener(event,()=>{
+   if(direction==="left")moveLeft=false;
+   if(direction==="right")moveRight=false;
+  });
+ });
+}
+
+setControl($("left"),"left");
+setControl($("right"),"right");
+setControl($("jump"),"jump");
+
+let keys={};
+document.addEventListener("keydown",e=>{
+ keys[e.key]=true;
+ if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();
+ if(e.key===" "||e.key==="ArrowUp")jump();
+});
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+function keyboard(){
+ moveLeft=!!(keys.ArrowLeft||keys.a||keys.A);
+ moveRight=!!(keys.ArrowRight||keys.d||keys.D);
+ requestAnimationFrame(keyboard);
+}
+keyboard();
+
+$("start").addEventListener("click",()=>{
+ if(level===1||gameOver)startGame();
+ else if(!running&&level<3)beginLevel();
+});
+
+drawBackground();
+drawPlayer();
+updateHUD();
+</script>
+</body>
+</html>
