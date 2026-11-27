@@ -1,400 +1,489 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Jungle Escape | FREE PLAY</title>
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;padding:15px;background:#050b0e;color:white;
- font-family:Arial,sans-serif;text-align:center
+ margin:0;background:#061316;color:white;
+ font-family:Arial,sans-serif;overflow-x:hidden;
 }
-.container{max-width:700px;margin:auto}
-h1{color:#22cece}
-.hud{
- display:flex;justify-content:space-around;gap:6px;
- background:#10252b;padding:12px;border-radius:12px;
- margin:14px 0;border:1px solid #17616a
+.game-shell{
+ max-width:1100px;margin:auto;padding:14px;
 }
-.hud strong{display:block;color:#25d5d5;margin-top:5px}
-canvas{
- width:100%;height:auto;display:block;
- border:2px solid #20b9bb;border-radius:12px;
- touch-action:none
+.topbar{
+ display:flex;justify-content:space-between;align-items:center;
+ margin-bottom:12px;gap:10px;
 }
+.logo{font-size:23px;font-weight:900;color:#39e0c0;letter-spacing:1px}
+.logo span{color:white}
+.small{font-size:12px;color:#9bb8b4}
+.stats{
+ display:flex;justify-content:space-between;gap:8px;
+ flex-wrap:wrap;margin-bottom:10px;
+}
+.stat{
+ background:#10272a;border:1px solid #24504d;
+ border-radius:12px;padding:9px 13px;font-size:14px;
+}
+.stat b{color:#42e4c0}
+.game-frame{
+ position:relative;border:2px solid #286b61;
+ border-radius:18px;overflow:hidden;
+ background:#102a2a;box-shadow:0 12px 40px #0009;
+}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+.overlay{
+ position:absolute;inset:0;background:#031515d9;
+ display:flex;align-items:center;justify-content:center;
+ text-align:center;padding:20px;
+}
+.panel{
+ background:linear-gradient(145deg,#173e3a,#071b20);
+ border:1px solid #4e9e88;border-radius:20px;
+ padding:25px;width:min(430px,95%);
+ box-shadow:0 12px 35px #0009;
+}
+.panel h1{font-size:clamp(28px,6vw,46px);margin:0 0 8px;color:#58f0c3}
+.panel p{color:#c0d9d1;line-height:1.5}
 button{
- border:0;border-radius:10px;padding:14px;
- background:#18b8bd;color:#031012;
- font-size:16px;font-weight:bold;touch-action:none
+ border:0;border-radius:12px;padding:12px 18px;
+ background:#23c99e;color:#04251d;font-weight:900;
+ font-size:14px;cursor:pointer;
 }
-#jump{background:#edbd39}
-.controls{display:flex;justify-content:center;gap:12px;margin:16px 0}
-#message{min-height:26px;color:#28d7d7;font-weight:bold}
-.back{color:#20caca;text-decoration:none;display:block;margin:20px}
+button:active{transform:scale(.96)}
+.secondary{background:#244c4c;color:white}
+.game-buttons{
+ display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+ margin-top:12px;
+}
+.controls{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:12px;margin-top:12px;user-select:none;
+}
+.pad{display:flex;gap:10px}
+.control{
+ width:68px;height:62px;border-radius:16px;
+ background:linear-gradient(145deg,#225d54,#102d30);
+ border:1px solid #4e9e88;color:white;
+ font-size:25px;font-weight:bold;touch-action:none;
+}
+.jump{width:100px;background:linear-gradient(145deg,#16cda0,#087d72)}
+.hint{text-align:center;color:#8eaaa4;font-size:12px;margin-top:10px}
+@media(max-width:500px){
+ .game-shell{padding:8px}
+ .stat{padding:7px 9px;font-size:12px}
+ .control{width:59px;height:57px}
+ .jump{width:86px}
+}
 </style>
 </head>
 <body>
-<div class="container">
-<h1>🌴 JUNGLE ESCAPE</h1>
-<p>Three levels. One great adventure!</p>
+<div class="game-shell">
+ <div class="topbar">
+  <div>
+   <div class="logo">FREE <span>PLAY</span></div>
+   <div class="small">JUNGLE ESCAPE • ADVENTURE SERIES</div>
+  </div>
+  <button class="secondary" id="soundBtn">♫ SOUND ON</button>
+ </div>
 
-<div class="hud">
- <div>LEVEL<strong id="level">1 / 3</strong></div>
- <div>COINS<strong id="coins">0</strong></div>
- <div>LIVES<strong id="lives">❤️❤️❤️</strong></div>
- <div>SCORE<strong id="score">0</strong></div>
-</div>
+ <div class="stats">
+  <div class="stat">❤️ <b id="lives">3</b></div>
+  <div class="stat">🪙 <b id="coins">0</b></div>
+  <div class="stat">⭐ <b id="score">0</b></div>
+  <div class="stat">LEVEL <b id="level">1</b>/10</div>
+ </div>
 
-<canvas id="game" width="640" height="360"></canvas>
-<p id="message">Press START to begin!</p>
-<button id="start">START ADVENTURE</button>
+ <div class="game-frame">
+  <canvas id="game" width="960" height="540"></canvas>
+  <div class="overlay" id="overlay">
+   <div class="panel">
+    <div style="font-size:55px">🌴</div>
+    <h1>JUNGLE ESCAPE</h1>
+    <p>Explore mysterious worlds, collect treasure, avoid traps and reach the finish flag!</p>
+    <p><b>10 exciting adventure levels</b></p>
+    <button id="startBtn">START ADVENTURE ▶</button>
+   </div>
+  </div>
+ </div>
 
-<div class="controls">
- <button id="left">◀ LEFT</button>
- <button id="jump">JUMP ⬆</button>
- <button id="right">RIGHT ▶</button>
-</div>
-
-<p>Collect coins and glowing stars. Avoid obstacles and reach the checkpoint!</p>
-<a class="back" href="../index.html">← Back to FREE PLAY</a>
+ <div class="controls">
+  <div class="pad">
+   <button class="control" id="left">◀</button>
+   <button class="control" id="right">▶</button>
+  </div>
+  <button class="control jump" id="jump">JUMP ⬆</button>
+ </div>
+ <div class="game-buttons">
+  <button class="secondary" id="pauseBtn">Ⅱ PAUSE</button>
+  <button class="secondary" id="restartBtn">↻ RESTART</button>
+ </div>
+ <div class="hint">Use the buttons to move • Jump over obstacles • Collect coins • Reach the flag</div>
 </div>
 
 <script>
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
-const W=640,H=360;
+const W=960,H=540;
 
-const $=id=>document.getElementById(id);
+const themes=[
+ ["GREEN FOREST","#67c96b","#174d36","#a8e66d"],
+ ["RIVER KINGDOM","#53bde0","#145477","#75e8ed"],
+ ["CRYSTAL CAVE","#947ce0","#33235e","#d3aaff"],
+ ["FROZEN MOUNTAIN","#a8dff5","#416d9c","#e5f8ff"],
+ ["LOST DESERT","#f4bc66","#94552e","#ffdf85"],
+ ["ANCIENT TEMPLE","#8fbd72","#345b39","#d5c47b"],
+ ["PIRATE ISLAND","#64c7bd","#17616a","#f6d28b"],
+ ["LAVA WORLD","#ed7953","#632d2d","#ffb04c"],
+ ["SKY KINGDOM","#8bb8ff","#455d9d","#e4efff"],
+ ["FINAL CASTLE","#a68bdc","#392a62","#f7c6ff"]
+];
 
-let player,obstacles,coins,powerups;
-let level=1,score=0,coinCount=0,lives=3;
-let running=false,gameOver=false,frame=0;
-let speed=3,moveLeft=false,moveRight=false;
-let invincible=0,boost=0,checkpoint=0;
-let best=0;
+let level=0,score=0,coins=0,lives=3;
+let running=false,paused=false,won=false;
+let camera=0,worldWidth=3600;
+let platforms=[],hazards=[],treasures=[],enemies=[],checkpoints=[];
+let player={x:60,y:300,vx:0,vy:0,w:34,h:48,ground:false,face:1,inv:0};
+let keys={left:false,right:false,jump:false};
+let audio=null,soundOn=true;
 
-try{best=Number(localStorage.getItem("jungleEscapeBest"))||0}catch(e){}
-
-const levelNames=["Forest Adventure","River Crossing","Ancient Temple"];
-
-function updateHUD(){
- $("level").textContent=level+" / 3";
- $("coins").textContent=coinCount;
- $("lives").textContent="❤️".repeat(lives);
- $("score").textContent=score;
+function platform(x,y,w,h=25,type="normal"){
+ platforms.push({x,y,w,h,type});
 }
+function buildLevel(){
+ platforms=[];hazards=[];treasures=[];enemies=[];checkpoints=[];
+ worldWidth=3600;
+ platform(0,475,500,65);
+ platform(600,475,500,65);
+ platform(1200,475,500,65);
+ platform(1800,475,500,65);
+ platform(2400,475,500,65);
+ platform(3000,475,600,65);
 
-function startGame(){
- level=1;score=0;coinCount=0;lives=3;
- checkpoint=0;invincible=0;boost=0;
- beginLevel();
- $("start").textContent="RESTART ADVENTURE";
-}
-
-function beginLevel(){
- player={x:80,y:240,w:30,h:42,vy:0,onGround:false};
- obstacles=[];coins=[];powerups=[];
- frame=0;speed=2.8+level*.35;
- running=true;gameOver=false;
- moveLeft=false;moveRight=false;
- $("message").textContent=levelNames[level-1]+" — Reach the checkpoint!";
- spawnObjects();
- updateHUD();
- requestAnimationFrame(loop);
-}
-
-function spawnObjects(){
- for(let i=0;i<5;i++){
-  obstacles.push({
-   x:650+i*250+Math.random()*90,
-   y:285,w:30+Math.random()*25,h:35
-  });
+ // Elevated paths
+ for(let i=0;i<14;i++){
+  let x=220+i*235;
+  let y=380-(i%3)*65;
+  platform(x,y,125,22,i%4===0?"moving":"normal");
  }
+ // Additional stepping stones
+ for(let i=0;i<9;i++){
+  platform(300+i*365,310-(i%3)*35,85,18);
+ }
+ // Hazards
+ for(let i=0;i<17;i++){
+  let x=390+i*190;
+  hazards.push({x,y:448,w:34,h:27});
+ }
+ // Coins
+ for(let i=0;i<50;i++){
+  let x=140+i*67;
+  let y=400-(i%4)*48;
+  treasures.push({x,y,got:false});
+ }
+ // Enemies
  for(let i=0;i<12;i++){
-  coins.push({
-   x:720+i*135,y:170+Math.random()*85,
-   r:10,collected:false
-  });
+  let x=450+i*270;
+  enemies.push({x,y:430,home:x,dir:i%2?1:-1,alive:true});
  }
+ checkpoints.push({x:1700,active:false});
+ checkpoints.push({x:2800,active:false});
 }
 
-function drawBackground(){
- const sky=["#80cbd0","#67b9c9","#302e52"][level-1];
- ctx.fillStyle=sky;
- ctx.fillRect(0,0,W,H);
+function startLevel(){
+ buildLevel();
+ player={x:60,y:370,vx:0,vy:0,w:34,h:48,ground:false,face:1,inv:0};
+ camera=0;running=true;paused=false;won=false;
+ document.getElementById("overlay").style.display="none";
+ updateStats();
+}
+function updateStats(){
+ document.getElementById("lives").textContent=lives;
+ document.getElementById("coins").textContent=coins;
+ document.getElementById("score").textContent=score;
+ document.getElementById("level").textContent=level+1;
+}
+function sound(freq=500,duration=.09){
+ if(!soundOn)return;
+ try{
+  audio=audio||new(window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  let o=audio.createOscillator(),g=audio.createGain();
+  o.connect(g);g.connect(audio.destination);
+  o.frequency.value=freq;o.type="sine";
+  g.gain.setValueAtTime(.08,audio.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+  o.start();o.stop(audio.currentTime+duration);
+ }catch(e){}
+}
+document.getElementById("soundBtn").onclick=()=>{
+ soundOn=!soundOn;
+ document.getElementById("soundBtn").textContent=soundOn?"♫ SOUND ON":"♫ SOUND OFF";
+ if(soundOn)sound(700);
+};
+document.getElementById("startBtn").onclick=()=>{
+ if(won){level=0;score=0;coins=0;lives=3;}
+ startLevel();sound(650);
+};
+document.getElementById("restartBtn").onclick=()=>{if(running||won)startLevel();};
+document.getElementById("pauseBtn").onclick=()=>{
+ if(!running)return;
+ paused=!paused;
+ document.getElementById("pauseBtn").textContent=paused?"▶ RESUME":"Ⅱ PAUSE";
+};
 
- if(level===1){
-  ctx.fillStyle="#39804b";
-  for(let i=0;i<9;i++){
-   let x=(i*100-frame*.35%900+900)%900;
-   ctx.beginPath();ctx.arc(x,100,55,0,Math.PI*2);ctx.fill();
-   ctx.fillRect(x-8,100,16,190);
-  }
- }else if(level===2){
-  ctx.fillStyle="#1688a5";
-  ctx.fillRect(0,210,W,90);
-  ctx.fillStyle="#b5e5ee";
-  for(let i=0;i<8;i++){
-   let x=(i*100-frame*1.5%800+800)%800;
-   ctx.fillRect(x,235,50,4);
-  }
-  ctx.fillStyle="#327d43";
-  for(let i=0;i<8;i++){
-   let x=(i*100-frame*.3%800+800)%800;
-   ctx.fillRect(x,80,30,150);
-  }
+function bindButton(id,key){
+ const el=document.getElementById(id);
+ el.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true;});
+ ["pointerup","pointerleave","pointercancel"].forEach(ev=>
+  el.addEventListener(ev,e=>{e.preventDefault();keys[key]=false;}));
+}
+bindButton("left","left");bindButton("right","right");bindButton("jump","jump");
+window.addEventListener("keydown",e=>{
+ if(["ArrowLeft","ArrowRight","ArrowUp"," ","a","d","w"].includes(e.key))e.preventDefault();
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
+ if(e.key==="ArrowUp"||e.key===" "||e.key==="w")keys.jump=true;
+});
+window.addEventListener("keyup",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
+ if(e.key==="ArrowUp"||e.key===" "||e.key==="w")keys.jump=false;
+});
+
+function hit(a,b){
+ return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+}
+function damage(){
+ if(player.inv>0)return;
+ lives--;player.inv=90;player.vy=-8;
+ sound(130,.2);
+ if(lives<=0){
+  running=false;showMessage("ADVENTURE OVER","Your journey has ended. Try again!","TRY AGAIN");
  }else{
-  ctx.fillStyle="#75604b";
-  for(let i=0;i<8;i++){
-   let x=(i*100-frame*.3%800+800)%800;
-   ctx.fillRect(x,90,45,200);
-   ctx.fillStyle="#b19a75";
-   ctx.fillRect(x+8,100,28,18);
-   ctx.fillStyle="#75604b";
-  }
-  ctx.fillStyle="#d8c17e";
-  ctx.fillRect(0,280,W,10);
+  player.x=Math.max(60,player.x-130);
+  player.y=300;player.vx=0;
  }
-
- ctx.fillStyle=level===2?"#287d55":level===3?"#665044":"#72502d";
- ctx.fillRect(0,290,W,70);
- ctx.fillStyle=level===3?"#bca06e":"#398b3f";
- ctx.fillRect(0,285,W,12);
-
- // Checkpoint marker
- ctx.fillStyle="#f7d34b";
- ctx.fillRect(590,190,5,95);
- ctx.beginPath();
- ctx.moveTo(595,190);ctx.lineTo(625,202);
- ctx.lineTo(595,214);ctx.fill();
+ updateStats();
 }
-
-function drawPlayer(){
- if(invincible>0&&Math.floor(frame/5)%2===0)return;
- ctx.fillStyle="#263c28";
- ctx.fillRect(player.x+7,player.y+7,17,22);
- ctx.fillStyle="#e8b77c";
- ctx.beginPath();ctx.arc(player.x+15,player.y+5,10,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#39271b";
- ctx.fillRect(player.x+5,player.y-5,21,8);
- ctx.fillStyle=level===3?"#48b7da":"#df8b37";
- ctx.fillRect(player.x+4,player.y+16,23,18);
- ctx.fillStyle="#24384b";
- ctx.fillRect(player.x+5,player.y+34,8,9);
- ctx.fillRect(player.x+18,player.y+34,8,9);
+function showMessage(title,desc,button){
+ const ov=document.getElementById("overlay");
+ ov.innerHTML=`<div class="panel"><div style="font-size:50px">🏆</div><h1>${title}</h1><p>${desc}</p><button id="again">${button}</button></div>`;
+ ov.style.display="flex";
+ document.getElementById("again").onclick=()=>{
+  if(won){level=0;score=0;coins=0;lives=3;}
+  startLevel();
+ };
 }
-
-function drawObjects(){
- obstacles.forEach(o=>{
-  ctx.fillStyle=level===3?"#ad9270":"#68462b";
-  ctx.fillRect(o.x,o.y,o.w,o.h);
-  ctx.fillStyle="#b99b72";
-  ctx.fillRect(o.x+5,o.y+5,o.w-10,7);
- });
-
- coins.forEach(c=>{
-  if(c.collected)return;
-  ctx.fillStyle="#ffd43b";
-  ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="#bd8012";ctx.lineWidth=3;ctx.stroke();
- });
-
- powerups.forEach(p=>{
-  if(p.collected)return;
-  ctx.fillStyle="#a5ffff";
-  ctx.beginPath();ctx.arc(p.x,p.y,13,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#087d8b";
-  ctx.font="bold 16px Arial";
-  ctx.fillText("★",p.x-7,p.y+6);
- });
-}
-
-function collision(a,b){
- return a.x<b.x+b.w&&a.x+a.w>b.x&&
- a.y<b.y+b.h&&a.y+a.h>b.y;
+function completeLevel(){
+ if(!running)return;
+ running=false;won=true;sound(850,.3);
+ if(level<9){
+  showMessage("LEVEL COMPLETE!","Excellent! Get ready for the next world.","NEXT LEVEL");
+  document.getElementById("again").onclick=()=>{
+   level++;startLevel();sound(650);
+  };
+ }else{
+  showMessage("YOU ARE THE CHAMPION!","You conquered all 10 worlds. Amazing adventure!","PLAY AGAIN");
+ }
 }
 
 function update(){
- frame++;
- if(invincible>0)invincible--;
- if(boost>0)boost--;
-
- if(moveLeft)player.x-=3;
- if(moveRight)player.x+=3;
- player.x=Math.max(0,Math.min(W-player.w,player.x));
-
- player.vy+=.55;
+ if(!running||paused)return;
+ let speed=4.3;
+ player.vx=0;
+ if(keys.left){player.vx=-speed;player.face=-1;}
+ if(keys.right){player.vx=speed;player.face=1;}
+ player.x+=player.vx;
+ player.x=Math.max(0,Math.min(worldWidth-player.w,player.x));
+ if(keys.jump&&player.ground){
+  player.vy=-13.5;player.ground=false;sound(430,.07);
+ }
+ player.vy+=.62;
+ if(player.vy>14)player.vy=14;
+ let oldY=player.y;
  player.y+=player.vy;
-
- if(player.y+player.h>=285){
-  player.y=285-player.h;
-  player.vy=0;player.onGround=true;
- }else player.onGround=false;
-
- obstacles.forEach(o=>o.x-=speed+(boost>0?1:0));
- coins.forEach(c=>c.x-=speed);
- powerups.forEach(p=>p.x-=speed);
-
- obstacles=obstacles.filter(o=>o.x>-80);
- coins=coins.filter(c=>c.x>-30&&!c.collected);
- powerups=powerups.filter(p=>p.x>-30&&!p.collected);
-
- if(frame%Math.max(65,115-level*10)===0){
-  obstacles.push({x:680,y:285,w:35+Math.random()*20,h:35});
- }
-
- if(frame%65===0){
-  coins.push({x:680,y:175+Math.random()*75,r:10,collected:false});
- }
-
- if(frame%480===0){
-  powerups.push({x:680,y:200,r:13,collected:false});
- }
-
- const p={x:player.x+3,y:player.y+3,w:player.w-6,h:player.h-4};
-
- obstacles.forEach(o=>{
-  if(collision(p,o)&&invincible===0){
-   o.x=-100;
-   lives--;
-   invincible=100;
-   updateHUD();
-   $("message").textContent="Obstacle! Be careful!";
-   if(lives<=0)endGame();
-  }
- });
-
- coins.forEach(c=>{
-  if(!c.collected&&
-  player.x<c.x+c.r&&player.x+player.w>c.x-c.r&&
-  player.y<c.y+c.r&&player.y+player.h>c.y-c.r){
-   c.collected=true;coinCount++;score+=20;updateHUD();
-  }
- });
-
- powerups.forEach(pw=>{
-  if(!pw.collected&&
-  player.x<pw.x+13&&player.x+player.w>pw.x-13&&
-  player.y<pw.y+13&&player.y+player.h>pw.y-13){
-   pw.collected=true;
-   boost=300;score+=50;
-   $("message").textContent="STAR POWER! Bonus activated!";
-   updateHUD();
-  }
- });
-
- score++;
-
- // Checkpoint is reached after enough distance
- if(frame>=checkpoint+850){
-  checkpoint=frame;
-  if(level<3){
-   running=false;
-   score+=100;
-   updateHUD();
-   $("message").textContent="Checkpoint reached! +100 points!";
-   $("start").textContent="NEXT LEVEL";
-   $("start").onclick=()=>{
-    $("start").onclick=null;
-    level++;
-    beginLevel();
-   };
-  }else{
-   winGame();
+ player.ground=false;
+ for(let p of platforms){
+  if(player.x+player.w>p.x&&player.x<p.x+p.w&&
+     oldY+player.h<=p.y&&player.y+player.h>=p.y&&player.vy>=0){
+   player.y=p.y-player.h;player.vy=0;player.ground=true;
   }
  }
- updateHUD();
+ // Coins
+ for(let c of treasures){
+  if(!c.got&&Math.abs((player.x+17)-c.x)<27&&Math.abs((player.y+20)-c.y)<30){
+   c.got=true;coins++;score+=10;sound(850,.06);updateStats();
+  }
+ }
+ // Hazards
+ for(let h of hazards){
+  if(hit(player,{x:h.x,y:h.y,w:h.w,h:h.h}))damage();
+ }
+ // Enemies
+ for(let e of enemies){
+  if(!e.alive)continue;
+  e.x+=e.dir*1.1;
+  if(Math.abs(e.x-e.home)>55)e.dir*=-1;
+  let enemyBox={x:e.x,y:e.y-24,w:32,h:24};
+  if(hit(player,enemyBox)){
+   if(player.vy>1&&player.y+player.h<e.y-5){
+    e.alive=false;player.vy=-9;score+=25;sound(300);updateStats();
+   }else damage();
+  }
+ }
+ // Checkpoints
+ for(let c of checkpoints){
+  if(player.x>c.x&&!c.active){c.active=true;score+=50;sound(700);updateStats();}
+ }
+ if(player.y>600)damage();
+ if(player.x>worldWidth-100)completeLevel();
+ if(player.inv>0)player.inv--;
+ camera=Math.max(0,Math.min(worldWidth-W,player.x-330));
 }
 
+function rounded(x,y,w,h,r,color){
+ ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();
+}
+function drawBackground(){
+ let t=themes[level];
+ let sky=ctx.createLinearGradient(0,0,0,H);
+ sky.addColorStop(0,t[1]);sky.addColorStop(1,"#153e48");
+ ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ // Sun
+ ctx.fillStyle="#fff6b8";ctx.globalAlpha=.75;
+ ctx.beginPath();ctx.arc(760,100,48,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ // distant hills
+ for(let layer=0;layer<3;layer++){
+  ctx.fillStyle=layer===0?t[2]:"#174a42";
+  ctx.globalAlpha=.24+layer*.13;
+  ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W+50;x+=50){
+   let y=260+layer*65+Math.sin((x+camera*(.12+layer*.12))/90)*35;
+   ctx.lineTo(x,y);
+  }
+  ctx.lineTo(W,H);ctx.fill();ctx.globalAlpha=1;
+ }
+ // Jungle tree silhouettes
+ for(let i=0;i<18;i++){
+  let x=((i*170-camera*.35)%(W+200)+W+200)%(W+200)-80;
+  let height=130+(i%4)*30;
+  ctx.fillStyle="#123b31";
+  ctx.fillRect(x+22,300-height/2,20,height);
+  for(let j=0;j<4;j++){
+   ctx.beginPath();ctx.arc(x+30+(j%2)*24,280-height/2+j*35,42,0,Math.PI*2);
+   ctx.fill();
+  }
+ }
+ // Decorative floating lights
+ for(let i=0;i<18;i++){
+  let x=(i*83-camera*.5)%(W+30);
+  ctx.fillStyle="#eaffad";ctx.globalAlpha=.6;
+  ctx.beginPath();ctx.arc(x,100+(i*47)%280,2.5,0,7);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+}
+function drawPlatform(p){
+ let x=p.x-camera;
+ let t=themes[level];
+ let grad=ctx.createLinearGradient(0,p.y,0,p.y+p.h);
+ grad.addColorStop(0,t[3]);grad.addColorStop(.25,"#497d43");grad.addColorStop(1,"#263d2d");
+ rounded(x,p.y,p.w,p.h,7,grad);
+ ctx.fillStyle="#a4d76b";ctx.fillRect(x,p.y,p.w,7);
+ for(let i=0;i<p.w;i+=30){
+  ctx.fillStyle="#1d382d";ctx.fillRect(x+i,p.y+13,12,4);
+ }
+}
+function drawHero(){
+ let x=player.x-camera,y=player.y;
+ if(player.inv>0&&Math.floor(player.inv/5)%2===0)return;
+ ctx.save();ctx.translate(x+17,y+24);ctx.scale(player.face,1);
+ // shadow
+ ctx.fillStyle="#061b18";ctx.globalAlpha=.35;
+ ctx.beginPath();ctx.ellipse(0,25,20,5,0,0,7);ctx.fill();ctx.globalAlpha=1;
+ // legs
+ rounded(-13,7,10,17,4,"#253b76");
+ rounded(3,7,10,17,4,"#253b76");
+ rounded(-16,19,15,7,4,"#e4a45e");
+ rounded(2,19,15,7,4,"#e4a45e");
+ // body
+ rounded(-15,-13,30,26,8,"#e89a45");
+ rounded(-12,-10,24,18,6,"#efc16b");
+ // arms
+ rounded(-22,-8,9,18,5,"#e89a45");
+ rounded(13,-8,9,18,5,"#e89a45");
+ // head
+ ctx.fillStyle="#d99058";ctx.beginPath();ctx.arc(0,-22,15,0,7);ctx.fill();
+ // hair
+ ctx.fillStyle="#39291d";ctx.beginPath();ctx.arc(0,-29,15,Math.PI,Math.PI*2);ctx.fill();
+ rounded(-15,-30,30,7,4,"#493022");
+ // eyes
+ ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(6,-23,4,0,7);ctx.fill();
+ ctx.fillStyle="#1b1b1b";ctx.beginPath();ctx.arc(7,-23,2,0,7);ctx.fill();
+ // scarf
+ rounded(-14,-12,28,5,2,"#28d8a1");
+ ctx.restore();
+}
 function draw(){
  drawBackground();
- drawObjects();
- drawPlayer();
+ ctx.save();ctx.translate(-camera,0);
+ // platforms
+ platforms.forEach(drawPlatform);
+ // hazards
+ hazards.forEach(h=>{
+  ctx.fillStyle="#df594b";ctx.beginPath();
+  ctx.moveTo(h.x,h.y+h.h);ctx.lineTo(h.x+h.w/2,h.y);ctx.lineTo(h.x+h.w,h.y+h.h);ctx.fill();
+  ctx.fillStyle="#ffb29a";ctx.fillRect(h.x+15,h.y+13,4,7);
+ });
+ // coins
+ treasures.forEach(c=>{
+  if(c.got)return;
+  let pulse=1+Math.sin(Date.now()/160+c.x)*.12;
+  ctx.save();ctx.translate(c.x,c.y);ctx.scale(pulse,1);
+  ctx.fillStyle="#ffbd35";ctx.beginPath();ctx.arc(0,0,11,0,7);ctx.fill();
+  ctx.strokeStyle="#fff0a3";ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle="#9c6016";ctx.font="bold 12px Arial";ctx.fillText("$",-4,4);
+  ctx.restore();
+ });
+ // enemies
+ enemies.forEach(e=>{
+  if(!e.alive)return;
+  ctx.fillStyle="#7541a4";ctx.beginPath();ctx.ellipse(e.x+16,e.y-10,17,14,0,0,7);ctx.fill();
+  ctx.fillStyle="#fff";ctx.fillRect(e.x+8,e.y-15,5,6);ctx.fillRect(e.x+20,e.y-15,5,6);
+  ctx.fillStyle="#16121e";ctx.fillRect(e.x+10,e.y-14,3,4);ctx.fillRect(e.x+22,e.y-14,3,4);
+  ctx.fillStyle="#dca2ff";ctx.fillRect(e.x+5,e.y,22,4);
+ });
+ // checkpoints
+ checkpoints.forEach(c=>{
+  ctx.fillStyle=c.active?"#45edb2":"#b5c3be";
+  ctx.fillRect(c.x,390,5,85);
+  ctx.fillStyle=c.active?"#2df0aa":"#e7e7e7";
+  ctx.beginPath();ctx.moveTo(c.x+5,392);ctx.lineTo(c.x+48,408);ctx.lineTo(c.x+5,424);ctx.fill();
+ });
+ // Finish flag
+ ctx.fillStyle="#e9e9e9";ctx.fillRect(worldWidth-90,350,7,125);
+ ctx.fillStyle="#f2d34e";ctx.beginPath();
+ ctx.moveTo(worldWidth-83,352);ctx.lineTo(worldWidth-20,370);ctx.lineTo(worldWidth-83,394);ctx.fill();
+ drawHero();
+ ctx.restore();
+ // Level title
+ ctx.fillStyle="#ffffff";ctx.font="bold 18px Arial";
+ ctx.fillText(themes[level][0],22,34);
+ ctx.fillStyle="#ffffff99";ctx.font="12px Arial";
+ ctx.fillText("FIND THE FLAG!",22,53);
+ if(paused){
+  ctx.fillStyle="#001a";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="white";ctx.font="bold 42px Arial";ctx.textAlign="center";
+  ctx.fillText("PAUSED",W/2,H/2);ctx.textAlign="left";
+ }
 }
-
 function loop(){
- if(!running)return;
- update();
- draw();
- if(running)requestAnimationFrame(loop);
+ update();draw();requestAnimationFrame(loop);
 }
-
-function jump(){
- if(running&&player.onGround){
-  player.vy=-12;
-  player.onGround=false;
- }
-}
-
-function endGame(){
- running=false;gameOver=true;
- $("message").textContent="Adventure Over! Final score: "+score;
- $("start").textContent="PLAY AGAIN";
- $("start").onclick=()=>{$("start").onclick=null;startGame()};
- saveBest();
-}
-
-function winGame(){
- running=false;
- score+=200;
- updateHUD();
- $("message").textContent="🏆 YOU ESCAPED THE JUNGLE! Final score: "+score;
- $("start").textContent="PLAY AGAIN";
- $("start").onclick=()=>{$("start").onclick=null;startGame()};
- saveBest();
-}
-
-function saveBest(){
- if(score>best){
-  best=score;
-  try{localStorage.setItem("jungleEscapeBest",best)}catch(e){}
- }
-}
-
-function setControl(button,direction){
- button.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-  if(direction==="jump"){jump();return}
-  if(direction==="left")moveLeft=true;
-  if(direction==="right")moveRight=true;
- });
- ["pointerup","pointerleave","pointercancel"].forEach(event=>{
-  button.addEventListener(event,()=>{
-   if(direction==="left")moveLeft=false;
-   if(direction==="right")moveRight=false;
-  });
- });
-}
-
-setControl($("left"),"left");
-setControl($("right"),"right");
-setControl($("jump"),"jump");
-
-let keys={};
-document.addEventListener("keydown",e=>{
- keys[e.key]=true;
- if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();
- if(e.key===" "||e.key==="ArrowUp")jump();
-});
-document.addEventListener("keyup",e=>keys[e.key]=false);
-
-function keyboard(){
- moveLeft=!!(keys.ArrowLeft||keys.a||keys.A);
- moveRight=!!(keys.ArrowRight||keys.d||keys.D);
- requestAnimationFrame(keyboard);
-}
-keyboard();
-
-$("start").addEventListener("click",()=>{
- if(level===1||gameOver)startGame();
- else if(!running&&level<3)beginLevel();
-});
-
-drawBackground();
-drawPlayer();
-updateHUD();
+buildLevel();draw();loop();
 </script>
 </body>
 </html>
