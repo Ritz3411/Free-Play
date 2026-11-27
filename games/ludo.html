@@ -1,515 +1,290 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FREE PLAY | Ludo</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FREE PLAY - Ludo Arena</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box}
 body{
- background:radial-gradient(circle at top,#18264c,#070914 65%);
- color:#fff;font-family:Arial,sans-serif;
- min-height:100vh;padding:16px;text-align:center
+ margin:0;min-height:100vh;padding:18px 12px 30px;
+ background:radial-gradient(ellipse at 50% 0%,#202e58 0%,#0a1022 48%,#050914 100%);
+ color:#fff;font-family:Arial,sans-serif;text-align:center
 }
-h1{color:#00d9ff;text-shadow:0 0 18px #00c8ff;margin:10px}
-.subtitle{color:#aebbd7;margin-bottom:18px}
-.panel{
- max-width:720px;margin:15px auto;background:#111a30;
- border:1px solid #00c8ff66;border-radius:18px;padding:18px;
- box-shadow:0 0 25px #00c8ff16
+header{margin:4px auto 18px}
+.brand{font-size:27px;font-weight:1000;letter-spacing:4px;color:#40eaff;text-shadow:0 0 20px #00cfff}
+.sub{font-size:10px;letter-spacing:4px;color:#9daecc;margin-top:5px}
+.shell{max-width:700px;margin:auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.heading{text-align:left}
+.heading h1{font-size:21px;margin:0}
+.heading p{margin:5px 0 0;color:#9eacc9;font-size:12px}
+select,button{
+ border:1px solid #344b70;border-radius:12px;padding:11px 13px;
+ background:#131f39;color:white;font-weight:bold;font-size:13px
 }
-h2{color:#00d9ff;margin-bottom:14px}
-button,select{
- border:1px solid #00c8ff;border-radius:10px;
- padding:12px 18px;background:#101d39;color:white;
- font-size:15px;font-weight:bold;cursor:pointer;margin:5px
-}
-button:hover{background:#087fae;box-shadow:0 0 15px #00c8ff66}
-button:disabled{opacity:.4;cursor:not-allowed}
-.primary{background:linear-gradient(100deg,#007fae,#633ac7)}
-#board{
- width:min(94vw,600px);height:auto;aspect-ratio:1;
- background:#0b1021;border:3px solid #00c8ff;
- border-radius:16px;display:block;margin:12px auto;
- box-shadow:0 0 25px #00c8ff55;
- touch-action:manipulation
-}
-#dice{
- font-size:48px;display:inline-block;margin:8px;
- color:#00e5ff;text-shadow:0 0 18px #00c8ff;
- min-width:65px
-}
-#status{color:#dce8ff;font-weight:bold;margin:12px}
-#players{display:flex;justify-content:center;flex-wrap:wrap;gap:9px}
+button{cursor:pointer}
+button:disabled{opacity:.4}
+select{max-width:145px}
+.players{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .player{
- padding:9px 13px;border:1px solid #405174;
- border-radius:9px;background:#0b1225;font-size:13px
+ padding:10px 5px;border:1px solid #2b3c5c;border-radius:13px;
+ background:linear-gradient(145deg,#192641,#0d172b);
+ font-size:12px;color:#aebbd4
 }
-.player.active{border-color:#00e5ff;box-shadow:0 0 14px #00c8ff66}
-.red{color:#ff5252}.green{color:#00ef9b}
-.yellow{color:#ffd43b}.blue{color:#42a5ff}
-#message{color:#aebbd7;min-height:24px;margin:10px}
-.hidden{display:none!important}
-#win{font-size:25px;color:#00f5a0;margin:15px}
-footer{color:#71809f;margin:25px;font-size:12px}
+.player strong{display:block;font-size:13px;margin-bottom:4px}
+.player.active{border-color:#42eaff;box-shadow:0 0 14px #00cfff44;color:white}
+.redtxt{color:#ff6876}.greentxt{color:#45e8a2}.yellowtxt{color:#ffd65a}.bluetxt{color:#55aaff}
+.board-wrap{
+ padding:9px;border-radius:23px;
+ background:linear-gradient(135deg,#20e5ff,#7657ff,#20e5ff);
+ box-shadow:0 0 30px #00cfff30,0 15px 35px #0008;
+}
+#board{
+ width:100%;aspect-ratio:1;display:grid;
+ grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);
+ background:#f5f4ee;border:3px solid #111a2b;
+ border-radius:12px;overflow:hidden
+}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;border:1px solid #d6d8dc;background:#f9f9f6;min-width:0}
+.cell.path{background:#fff}
+.cell.red{background:#ff6573}
+.cell.green{background:#43d99b}
+.cell.yellow{background:#ffd65a}
+.cell.blue{background:#58aaff}
+.cell.lane-red{background:#ff5365}
+.cell.lane-green{background:#21c984}
+.cell.lane-yellow{background:#f4c334}
+.cell.lane-blue{background:#2788ed}
+.cell.safe:after{content:"★";font-size:clamp(7px,2vw,15px);color:#a2a9b6}
+.home{
+ grid-column:span 6;grid-row:span 6;
+ margin:3px;border:2px solid #ffffffb0;border-radius:8px;
+ display:flex;align-items:center;justify-content:center;position:relative
+}
+.home.red{background:linear-gradient(145deg,#ff6574,#a90d35)}
+.home.green{background:linear-gradient(145deg,#45edaa,#08764e)}
+.home.yellow{background:linear-gradient(145deg,#ffe47a,#bd8000)}
+.home.blue{background:linear-gradient(145deg,#66c0ff,#124eae)}
+.home-inner{
+ width:68%;height:68%;background:#fff;border-radius:12px;
+ box-shadow:0 5px 12px #0005;display:grid;
+ grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+ gap:12%;padding:12%
+}
+.slot{border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#d9e0e9 75%);box-shadow:inset 0 2px 5px #8490a0}
+.center{
+ background:conic-gradient(#21c984 0 25%,#f4c334 0 50%,#ff5365 0 75%,#2788ed 0);
+ border:2px solid white;display:flex;align-items:center;justify-content:center;
+ font-size:clamp(7px,2vw,14px);font-weight:1000;color:white;text-shadow:0 2px 4px #000;
+}
+.token{
+ width:75%;height:75%;border-radius:50%;z-index:4;
+ border:2px solid #fff;box-shadow:0 3px 5px #0007,inset 0 3px 5px #ffffffa0;
+ color:white;font-size:clamp(7px,1.7vw,12px);font-weight:900;
+ display:flex;align-items:center;justify-content:center;padding:0;
+}
+.token.red{background:radial-gradient(circle at 30% 25%,#ffb4bb,#ed263f 60%,#850b24)}
+.token.green{background:radial-gradient(circle at 30% 25%,#b5ffdf,#08b978 60%,#07593b)}
+.token.yellow{background:radial-gradient(circle at 30% 25%,#fff4b2,#e7ac13 60%,#8d5c00)}
+.token.blue{background:radial-gradient(circle at 30% 25%,#c1e9ff,#1689ef 60%,#06437f)}
+.token:disabled{opacity:1}
+.token.selected{outline:3px solid #00eaff;box-shadow:0 0 13px #00eaff}
+.bottom{
+ margin-top:15px;padding:14px;border-radius:17px;
+ background:linear-gradient(145deg,#172641,#0c1528);
+ border:1px solid #2b4264
+}
+.turnline{display:flex;justify-content:center;align-items:center;gap:14px}
+.dice{
+ width:58px;height:58px;border:2px solid #42eaff;border-radius:15px;
+ display:grid;place-items:center;font-size:34px;background:#0a1830;
+ box-shadow:0 0 16px #00dfff44
+}
+.dice.roll{animation:spin .4s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.primary{background:linear-gradient(110deg,#087fce,#7444df);border:1px solid #52dfff;box-shadow:0 0 15px #236cba55;padding:15px 24px}
+.message{font-size:13px;color:#c1cde3;margin:12px 0 0;min-height:18px}
+.actions{display:flex;justify-content:center;gap:9px;margin-top:12px;flex-wrap:wrap}
+.note{color:#7e91b2;font-size:11px;margin-top:12px}
+@media(max-width:440px){
+ body{padding:12px 7px}
+ .players{gap:5px}.player{padding:8px 2px;font-size:10px}
+ .player strong{font-size:11px}
+ .board-wrap{padding:5px}
+ .heading h1{font-size:17px}
+ select{font-size:11px;padding:9px 5px}
+}
 </style>
 </head>
-
 <body>
+<header>
+ <div class="brand">FREE PLAY</div>
+ <div class="sub">THE ARCADE NEVER ENDS</div>
+</header>
 
-<h1>🎲 FREE PLAY LUDO</h1>
-<p class="subtitle">Roll the dice. Move your tokens. Win the game!</p>
+<div class="shell">
+ <div class="topbar">
+  <div class="heading"><h1>🎲 Ludo Arena</h1><p>Roll. Move. Rule the board.</p></div>
+  <select id="mode">
+   <option value="local">Local multiplayer</option>
+   <option value="computer">Play vs computer</option>
+  </select>
+ </div>
 
-<div class="panel" id="setup">
-<h2>Choose Your Game Mode</h2>
+ <div class="players" id="players"></div>
 
-<button class="primary" onclick="startGame('local')">
-👥 Play with Friends
-</button>
+ <div class="board-wrap"><div id="board"></div></div>
 
-<button class="primary" onclick="startGame('computer')">
-🤖 Play vs Computer
-</button>
-
-<p style="margin-top:18px;color:#aebbd7">Local multiplayer players:</p>
-
-<select id="playerCount">
-<option value="2">2 Players</option>
-<option value="3">3 Players</option>
-<option value="4" selected>4 Players</option>
-</select>
+ <div class="bottom">
+  <div class="turnline">
+   <div class="dice" id="dice">🎲</div>
+   <button class="primary" id="roll">ROLL DICE</button>
+  </div>
+  <div class="message" id="message">Red's turn. Roll the dice!</div>
+  <div class="actions">
+   <button id="new">↻ NEW GAME</button>
+  </div>
+  <div class="note">Roll a six to release a token · Tap a token to move</div>
+ </div>
 </div>
-
-<div class="panel hidden" id="game">
-
-<div id="players"></div>
-
-<canvas id="board" width="600" height="600"></canvas>
-
-<div id="status">Red's turn</div>
-
-<div id="dice">⚀</div>
-
-<div>
-<button class="primary" id="rollBtn" onclick="rollDice()">🎲 ROLL DICE</button>
-<button onclick="newGame()">↻ RESTART</button>
-</div>
-
-<div id="message">Roll a six to bring a token out!</div>
-
-<div id="win" class="hidden"></div>
-<button id="backBtn" class="hidden" onclick="backToMenu()">MAIN MENU</button>
-
-</div>
-
-<footer>FREE PLAY © 2026 | LUDO</footer>
 
 <script>
-const canvas=document.getElementById("board");
-const ctx=canvas.getContext("2d");
-
-const colors=[
- {name:"Red",hex:"#ff4545",dark:"#641d29",start:0},
- {name:"Green",hex:"#00dc91",dark:"#07583f",start:13},
- {name:"Yellow",hex:"#ffd43b",dark:"#765c13",start:26},
- {name:"Blue",hex:"#399cff",dark:"#183d75",start:39}
+const names=["Red","Green","Yellow","Blue"];
+const colors=["red","green","yellow","blue"];
+const start=[0,13,26,39];
+const path=[
+[6,1],[6,2],[6,3],[6,4],[6,5],
+[5,6],[4,6],[3,6],[2,6],[1,6],[0,7],
+[1,8],[2,8],[3,8],[4,8],[5,8],
+[6,9],[6,10],[6,11],[6,12],[6,13],[7,14],
+[8,13],[8,12],[8,11],[8,10],[8,9],
+[9,8],[10,8],[11,8],[12,8],[13,8],[14,7],
+[13,6],[12,6],[11,6],[10,6],[9,6],
+[8,5],[8,4],[8,3],[8,2],[8,1],[7,0]
 ];
-
-const safe=[0,8,13,21,26,34,39,47];
-const center={x:300,y:300};
-const radius=207;
-let players=[];
-let current=0;
-let dice=0;
-let rolling=false;
-let selected=false;
-let mode="local";
-let finished=false;
-let audio=null;
-let tokenHits=[];
-let lastRoll=1;
-
-function sound(freq=500,duration=.12){
- try{
-  audio=audio||new(window.AudioContext||window.webkitAudioContext)();
-  if(audio.state==="suspended")audio.resume();
-  const oscillator=audio.createOscillator();
-  const gain=audio.createGain();
-  oscillator.frequency.value=freq;
-  oscillator.type="sine";
-  gain.gain.setValueAtTime(.09,audio.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
-  oscillator.connect(gain);
-  gain.connect(audio.destination);
-  oscillator.start();
-  oscillator.stop(audio.currentTime+duration);
- }catch(e){}
+const lanes=[
+[[7,1],[7,2],[7,3],[7,4],[7,5]],
+[[1,7],[2,7],[3,7],[4,7],[5,7]],
+[[7,13],[7,12],[7,11],[7,10],[7,9]],
+[[13,7],[12,7],[11,7],[10,7],[9,7]]
+];
+const bases=[
+[[10,1],[10,4],[13,1],[13,4]],
+[[1,10],[1,13],[4,10],[4,13]],
+[[1,1],[1,4],[4,1],[4,4]],
+[[10,10],[10,13],[13,10],[13,13]]
+];
+const safe=[0,8,13,21,26,34,39,43];
+let state,turn,rolled,dice,mode,finished,valid;
+const board=document.getElementById("board");
+const $=id=>document.getElementById(id);
+function makeCell(r,c,cls=""){
+ let e=document.createElement("div");e.className="cell "+cls;
+ board.appendChild(e);return e;
 }
-
-function point(index){
- const angle=(-90+index*360/52)*Math.PI/180;
- return {
-  x:center.x+radius*Math.cos(angle),
-  y:center.y+radius*Math.sin(angle)
- };
-}
-
-function homePoint(player,step){
- const angle=(-90+player*90)*Math.PI/180;
- const r=radius-step*27;
- return {
-  x:center.x+r*Math.cos(angle),
-  y:center.y+r*Math.sin(angle)
- };
-}
-
-function basePoint(player,token){
- const positions=[
-  [[105,105],[165,105],[105,165],[165,165]],
-  [[435,105],[495,105],[435,165],[495,165]],
-  [[435,435],[495,435],[435,495],[495,495]],
-  [[105,435],[165,435],[105,495],[165,495]]
+let cells=[];
+function build(){
+ board.innerHTML="";cells=[];
+ for(let r=0;r<15;r++){cells[r]=[];for(let c=0;c<15;c++)cells[r][c]=makeCell(r,c)}
+ // Four large coloured home zones.
+ const homes=[
+ {r:9,c:0,color:"red"},{r:0,c:0,color:"green"},
+ {r:0,c:9,color:"yellow"},{r:9,c:9,color:"blue"}
  ];
- return {x:positions[player][token][0],y:positions[player][token][1]};
+ homes.forEach(h=>{
+  let el=document.createElement("div");el.className="home "+h.color;
+  el.style.gridRow=`${h.r+1}/span 6`;el.style.gridColumn=`${h.c+1}/span 6`;
+  el.innerHTML='<div class="home-inner"><i class="slot"></i><i class="slot"></i><i class="slot"></i><i class="slot"></i></div>';
+  board.appendChild(el);
+ });
+ path.forEach(([r,c],i)=>{
+  cells[r][c].className="cell path"+(safe.includes(i)?" safe":"");
+ });
+ path.forEach(([r,c],i)=>{
+  if(i===0)cells[r][c].classList.add("red");
+  if(i===13)cells[r][c].classList.add("green");
+  if(i===26)cells[r][c].classList.add("yellow");
+  if(i===39)cells[r][c].classList.add("blue");
+ });
+ lanes.forEach((lane,p)=>lane.forEach(([r,c])=>cells[r][c].classList.add("lane-"+colors[p])));
+ cells[7][7].className="cell center";cells[7][7].textContent="FP";
 }
-
-function startGame(chosenMode){
- mode=chosenMode;
- const count=mode==="computer"?4:Number(document.getElementById("playerCount").value);
-
- players=colors.slice(0,count).map((c,i)=>({
-  ...c,
-  computer:mode==="computer"&&i!==0,
-  tokens:[-1,-1,-1,-1]
+function loc(p,t){
+ if(t.pos===-1)return bases[p][t.id];
+ if(t.pos<44)return path[(start[p]+t.pos)%44];
+ return lanes[p][Math.min(t.pos-44,4)];
+}
+function draw(){
+ document.querySelectorAll(".token").forEach(e=>e.remove());
+ state.forEach((arr,p)=>arr.forEach(t=>{
+  let [r,c]=loc(p,t);
+  let b=document.createElement("button");
+  b.className="token "+colors[p]+(p===turn&&valid.includes(t.id)?" selected":"");
+  b.textContent="";b.disabled=!(p===turn&&valid.includes(t.id));
+  b.onclick=()=>move(t.id);
+  cells[r][c].appendChild(b);
  }));
-
- current=0;
- dice=0;
- finished=false;
- rolling=false;
- selected=false;
-
- document.getElementById("setup").classList.add("hidden");
- document.getElementById("game").classList.remove("hidden");
- document.getElementById("win").classList.add("hidden");
- document.getElementById("backBtn").classList.add("hidden");
-
- updateUI();
- drawBoard();
- document.getElementById("message").textContent=
-  mode==="computer"?"You are Red. Beat the computer players!":"Pass the device and enjoy Ludo!";
-}
-
-function newGame(){
- startGame(mode);
-}
-
-function backToMenu(){
- document.getElementById("game").classList.add("hidden");
- document.getElementById("setup").classList.remove("hidden");
-}
-
-function drawBoard(){
- ctx.clearRect(0,0,600,600);
- ctx.fillStyle="#0a1022";
- ctx.fillRect(0,0,600,600);
-
- // Four home bases
- const bases=[
-  [30,30,"#ff4545"],
-  [390,30,"#00dc91"],
-  [390,390,"#ffd43b"],
-  [30,390,"#399cff"]
- ];
-
- bases.forEach(([x,y,c])=>{
-  ctx.fillStyle=c+"30";
-  ctx.fillRect(x,y,180,180);
-  ctx.strokeStyle=c;
-  ctx.lineWidth=3;
-  ctx.strokeRect(x,y,180,180);
-  ctx.fillStyle=c+"22";
-  ctx.fillRect(x+25,y+25,130,130);
+ $("players").innerHTML="";
+ names.forEach((n,p)=>{
+  let el=document.createElement("div");el.className="player"+(p===turn&&!finished?" active":"");
+  el.innerHTML=`<strong class="${colors[p]}txt">● ${n}</strong>${state[p].filter(t=>t.pos>=44).length}/4 home`;
+  $("players").appendChild(el);
  });
-
- // Circular track
- for(let i=0;i<52;i++){
-  const p=point(i);
-  ctx.beginPath();
-  ctx.arc(p.x,p.y,12,0,Math.PI*2);
-  ctx.fillStyle=safe.includes(i)?"#e8efff":"#25314c";
-  ctx.fill();
-  ctx.strokeStyle=safe.includes(i)?"#00e5ff":"#62708f";
-  ctx.lineWidth=1.5;
-  ctx.stroke();
-
-  if([0,13,26,39].includes(i)){
-   ctx.fillStyle=colors.find(c=>c.start===i).hex;
-   ctx.beginPath();
-   ctx.arc(p.x,p.y,6,0,Math.PI*2);
-   ctx.fill();
+ $("message").textContent=finished?names[turn]+" wins! 🏆":rolled?"Choose a highlighted token.":names[turn]+"'s turn. Roll the dice!";
+ $("roll").disabled=rolled||finished;
+}
+function reset(){
+ state=names.map(()=>[0,1,2,3].map(id=>({id,pos:-1})));
+ turn=0;rolled=false;dice=0;finished=false;valid=[];
+ $("dice").textContent="🎲";draw();
+}
+function roll(){
+ if(rolled||finished)return;
+ dice=Math.floor(Math.random()*6)+1;
+ $("dice").textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][dice];
+ $("dice").classList.remove("roll");void $("dice").offsetWidth;$("dice").classList.add("roll");
+ rolled=true;
+ valid=state[turn].filter(t=>(t.pos===-1?dice===6:t.pos+dice<=48)).map(t=>t.id);
+ if(!valid.length){draw();setTimeout(next,850);return}
+ draw();
+ if(mode==="computer"&&turn!==0)setTimeout(cpuMove,700);
+}
+function move(id){
+ if(!rolled||!valid.includes(id)||finished)return;
+ let t=state[turn][id];
+ t.pos=t.pos===-1?0:t.pos+dice;
+ let captured=false;
+ if(t.pos<44){
+  let index=(start[turn]+t.pos)%44;
+  if(!safe.includes(index)){
+   state.forEach((arr,p)=>{if(p!==turn)arr.forEach(other=>{
+    if(other.pos>=0&&other.pos<44&&(start[p]+other.pos)%44===index){other.pos=-1;captured=true}
+   })});
   }
  }
-
- // Home lanes
- players.forEach((p,i)=>{
-  ctx.strokeStyle=p.hex;
-  ctx.lineWidth=7;
-  ctx.globalAlpha=.8;
-  ctx.beginPath();
-  const start=homePoint(i,0);
-  const end=homePoint(i,5);
-  ctx.moveTo(start.x,start.y);
-  ctx.lineTo(end.x,end.y);
-  ctx.stroke();
-  ctx.globalAlpha=1;
- });
-
- // Centre
- ctx.beginPath();
- ctx.arc(300,300,48,0,Math.PI*2);
- ctx.fillStyle="#182744";
- ctx.fill();
- ctx.strokeStyle="#00d9ff";
- ctx.lineWidth=3;
- ctx.stroke();
- ctx.fillStyle="#fff";
- ctx.font="bold 15px Arial";
- ctx.textAlign="center";
- ctx.fillText("HOME",300,305);
-
- // Tokens
- tokenHits=[];
- players.forEach((player,pi)=>{
-  player.tokens.forEach((progress,ti)=>{
-   let p;
-   if(progress===-1)p=basePoint(pi,ti);
-   else if(progress>=52)p=progress===57?center:homePoint(pi,progress-51);
-   else p=point((player.start+progress)%52);
-
-   tokenHits.push({x:p.x,y:p.y,pi,ti});
-
-   ctx.beginPath();
-   ctx.arc(p.x,p.y,14,0,Math.PI*2);
-   ctx.fillStyle=player.hex;
-   ctx.fill();
-   ctx.strokeStyle="#fff";
-   ctx.lineWidth=2;
-   ctx.stroke();
-
-   ctx.beginPath();
-   ctx.arc(p.x-4,p.y-4,4,0,Math.PI*2);
-   ctx.fillStyle="#ffffff99";
-   ctx.fill();
-
-   if(pi===current&&dice){
-    const valid=getMovableTokens();
-    if(valid.includes(ti)){
-     ctx.beginPath();
-     ctx.arc(p.x,p.y,20,0,Math.PI*2);
-     ctx.strokeStyle="#fff";
-     ctx.lineWidth=2;
-     ctx.stroke();
-    }
-   }
-  });
- });
+ rolled=false;valid=[];
+ if(state[turn].every(x=>x.pos===48)){finished=true;draw();return}
+ if(dice!==6&&!captured)next();else draw();
+ if(mode==="computer"&&turn!==0&&!finished)setTimeout(cpuTurn,700);
 }
-
-function getMovableTokens(){
- if(!dice)return [];
- return players[current].tokens
-  .map((p,i)=>({p,i}))
-  .filter(({p})=>{
-   if(p===57)return false;
-   if(p===-1)return dice===6;
-   return p+dice<=57;
-  })
-  .map(x=>x.i);
+function next(){
+ turn=(turn+1)%4;rolled=false;valid=[];dice=0;$("dice").textContent="🎲";draw();
+ if(mode==="computer"&&turn!==0&&!finished)setTimeout(cpuTurn,650);
 }
-
-function rollDice(){
- if(finished||rolling||dice||players[current].computer)return;
- rolling=true;
- const btn=document.getElementById("rollBtn");
- btn.disabled=true;
- let count=0;
-
- const timer=setInterval(()=>{
-  lastRoll=Math.floor(Math.random()*6)+1;
-  document.getElementById("dice").textContent=
-   ["","⚀","⚁","⚂","⚃","⚄","⚅"][lastRoll];
-  sound(300+lastRoll*70,.05);
-  count++;
-  if(count>=12){
-   clearInterval(timer);
-   dice=lastRoll;
-   rolling=false;
-   selected=false;
-   document.getElementById("message").textContent=
-    dice===6?"🎉 Six! Bring a token out or move one.":"Choose a glowing token to move.";
-   drawBoard();
-   if(getMovableTokens().length===0){
-    document.getElementById("message").textContent="No valid moves. Next player's turn!";
-    setTimeout(nextTurn,1100);
-   }else{
-    btn.disabled=true;
-    if(players[current].computer)computerMove();
-   }
-  }
- },75);
+function cpuTurn(){if(mode==="computer"&&turn!==0&&!rolled&&!finished)roll()}
+function cpuMove(){
+ if(turn===0||!valid.length)return;
+ // Prefer a token that can leave base, otherwise choose a legal token.
+ let choice=valid.find(id=>state[turn][id].pos===-1);
+ if(choice===undefined)choice=valid[Math.floor(Math.random()*valid.length)];
+ move(choice);
 }
-
-function moveToken(index){
- if(finished||!dice||rolling||selected)return;
- if(!getMovableTokens().includes(index))return;
-
- selected=true;
- const player=players[current];
- let old=player.tokens[index];
-
- player.tokens[index]=old===-1?0:old+dice;
- const newProgress=player.tokens[index];
-
- sound(700,.13);
-
- // Capture opponents
- if(newProgress>=0&&newProgress<52){
-  const position=(player.start+newProgress)%52;
-  if(!safe.includes(position)){
-   players.forEach((other,pi)=>{
-    if(pi===current)return;
-    other.tokens=other.tokens.map(progress=>{
-     if(progress>=0&&progress<52&&
-       (other.start+progress)%52===position){
-      sound(180,.2);
-      return -1;
-     }
-     return progress;
-    });
-   });
-  }
- }
-
- if(newProgress===57){
-  document.getElementById("message").textContent="🏠 Token reached home!";
-  sound(950,.25);
- }
-
- drawBoard();
-
- if(player.tokens.every(x=>x===57)){
-  finished=true;
-  document.getElementById("win").textContent=
-   "🏆 "+player.name+" WINS!";
-  document.getElementById("win").classList.remove("hidden");
-  document.getElementById("backBtn").classList.remove("hidden");
-  document.getElementById("rollBtn").disabled=true;
-  sound(1000,.5);
-  return;
- }
-
- const gotSix=dice===6;
- dice=0;
- selected=false;
-
- if(gotSix){
-  document.getElementById("message").textContent="🎉 You rolled a six! Roll again!";
-  updateUI();
-  drawBoard();
-  if(player.computer)setTimeout(computerRoll,800);
- }else{
-  nextTurn();
- }
-}
-
-function nextTurn(){
- if(finished)return;
- dice=0;
- selected=false;
- current=(current+1)%players.length;
- updateUI();
- drawBoard();
- document.getElementById("message").textContent=
-  players[current].name+"'s turn. Roll the dice!";
- if(players[current].computer)setTimeout(computerRoll,900);
-}
-
-function computerRoll(){
- if(finished||!players[current].computer)return;
- rollComputer();
-}
-
-function rollComputer(){
- if(finished||!players[current].computer)return;
- let count=0;
- rolling=true;
-
- const timer=setInterval(()=>{
-  lastRoll=Math.floor(Math.random()*6)+1;
-  document.getElementById("dice").textContent=
-   ["","⚀","⚁","⚂","⚃","⚄","⚅"][lastRoll];
-  count++;
-  if(count>=10){
-   clearInterval(timer);
-   dice=lastRoll;
-   rolling=false;
-   drawBoard();
-   const valid=getMovableTokens();
-   if(valid.length===0){
-    dice=0;
-    setTimeout(nextTurn,700);
-   }else{
-    const choice=valid[Math.floor(Math.random()*valid.length)];
-    setTimeout(()=>moveToken(choice),700);
-   }
-  }
- },70);
-}
-
-function updateUI(){
- document.getElementById("players").innerHTML=
-  players.map((p,i)=>`
-   <div class="player ${i===current?'active':''}">
-   <span class="${p.name.toLowerCase()}">● ${p.name}</span>
-   ${p.computer?"🤖":"👤"}
-   <br>${p.tokens.filter(t=>t===57).length}/4 home
-   </div>`).join("");
-
- document.getElementById("status").textContent=
-  players[current].name+"'s turn";
-
- document.getElementById("dice").textContent=
-  ["","⚀","⚁","⚂","⚃","⚄","⚅"][dice||1];
-
- document.getElementById("rollBtn").disabled=
-  players[current].computer||finished||dice!==0||rolling;
-}
-
-canvas.addEventListener("click",function(event){
- if(!dice||rolling||finished||players[current].computer)return;
- const rect=canvas.getBoundingClientRect();
- const x=(event.clientX-rect.left)*600/rect.width;
- const y=(event.clientY-rect.top)*600/rect.height;
-
- let closest=null;
- let distance=Infinity;
-
- tokenHits.forEach(t=>{
-  if(t.pi!==current||!getMovableTokens().includes(t.ti))return;
-  const d=Math.hypot(t.x-x,t.y-y);
-  if(d<distance){distance=d;closest=t;}
- });
-
- if(closest&&distance<28)moveToken(closest.ti);
-});
-
-canvas.addEventListener("touchstart",function(){},{passive:true});
-
-// Initial board preview
-drawBoard();
+$("roll").onclick=roll;
+$("new").onclick=reset;
+$("mode").onchange=e=>{mode=e.target.value;reset();if(mode==="computer"&&turn!==0)cpuTurn()};
+mode="local";build();reset();
 </script>
-
 </body>
 </html>
